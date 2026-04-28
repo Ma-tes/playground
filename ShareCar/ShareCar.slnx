@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/ShareCar.BackendService.App/ShareCar.BackendService.App.csproj" />
+    <Project Path="src/ShareCar.BackendService.Domain.Repositories/ShareCar.BackendService.Domain.Repositories.csproj" />
+    <Project Path="src/ShareCar.BackendService.Domain.Services/ShareCar.BackendService.Domain.Services.csproj" />
+    <Project Path="src/ShareCar.BackendService.Domain/ShareCar.BackendService.Domain.csproj" />
+    <Project Path="src/ShareCar.WebClient.App/ShareCar.WebClient.App.csproj" />
+  </Folder>
+</Solution>

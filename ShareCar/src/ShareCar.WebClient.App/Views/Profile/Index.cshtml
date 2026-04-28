@@ -1,0 +1,126 @@
+@model ShareCar.WebClient.App.Models.ProfileViewModel
+@{
+  ViewData["Title"] = "My Profile";
+}
+
+<header class="bg-white border-b border-gray-200">
+  <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+    <a asp-action="Index" asp-controller="Dashboard" class="flex items-center gap-2 text-gray-900 no-underline">
+      <span class="material-symbols-outlined text-blue-600">directions_car</span>
+      <span class="font-semibold">ShareCar</span>
+    </a>
+    <div class="flex items-center gap-3">
+      <a asp-action="Index" asp-controller="Profile" class="text-sm text-blue-600 hover:text-blue-500 flex items-center gap-1 no-underline">
+        <span class="material-symbols-outlined text-lg">person</span>
+        @User.Identity?.Name
+      </a>
+      <form method="post" asp-action="Logout" asp-controller="Account">
+        @Html.AntiForgeryToken()
+        <button type="submit" class="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1 transition">
+          <span class="material-symbols-outlined text-lg">logout</span>
+          Sign out
+        </button>
+      </form>
+    </div>
+  </div>
+</header>
+
+<main class="flex-1 max-w-5xl mx-auto w-full px-4 py-8">
+  <div class="mb-6">
+    <a asp-action="Index" asp-controller="Dashboard"
+       class="text-sm text-blue-600 hover:text-blue-500 flex items-center gap-1">
+      <span class="material-symbols-outlined text-lg">arrow_back</span>
+      Back to dashboard
+    </a>
+  </div>
+
+  <div class="bg-white rounded-lg border border-gray-200 p-6 mb-6">
+    <div class="flex items-center gap-4">
+      <div class="rounded-full bg-blue-50 p-3">
+        <span class="material-symbols-outlined text-3xl text-blue-600">person</span>
+      </div>
+      <div>
+        <h1 class="text-2xl font-semibold">@Model.Username</h1>
+        <p class="text-gray-500 text-sm">@Model.BookingHistory.Count completed rides</p>
+      </div>
+    </div>
+  </div>
+
+  @if (Model.ActiveBooking is not null)
+  {
+    <div class="mb-6 bg-amber-50 rounded-lg border border-amber-200 p-5">
+      <div class="flex items-center gap-3">
+        <span class="material-symbols-outlined text-2xl text-amber-600">directions_car</span>
+        <div class="flex-1">
+          <h2 class="font-medium text-amber-900">Active Rental — Booking #@Model.ActiveBooking.Id</h2>
+          <p class="text-sm text-amber-700">
+            @if (Model.ActiveVehicle is not null)
+            {
+              <span>@Model.ActiveVehicle.Model (@Model.ActiveVehicle.PlateNumber)</span>
+            }
+            · Started @Model.ActiveBooking.StartTime.ToString("g")
+            · Odometer at start: @Model.ActiveBooking.StartOdometer.ToString("N0") km
+          </p>
+        </div>
+        <a asp-action="Detail" asp-controller="Vehicles" asp-route-id="@Model.ActiveBooking.VehicleId" asp-route-parkingLotId="@Model.ActiveBooking.StartParkingLotId"
+           class="rounded-md bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 transition no-underline">
+          Return vehicle
+        </a>
+      </div>
+    </div>
+  }
+
+  <h2 class="text-lg font-semibold mb-4">Ride History</h2>
+
+  @if (Model.BookingHistory.Count == 0)
+  {
+    <div class="text-center py-12 text-gray-400">
+      <span class="material-symbols-outlined text-4xl">history</span>
+      <p class="mt-2 text-sm">No completed rides yet.</p>
+    </div>
+  }
+  else
+  {
+    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+      <table class="w-full text-sm">
+        <thead class="bg-gray-50 border-b border-gray-200">
+          <tr>
+            <th class="text-left px-4 py-3 font-medium text-gray-600">#</th>
+            <th class="text-left px-4 py-3 font-medium text-gray-600">Date</th>
+            <th class="text-left px-4 py-3 font-medium text-gray-600">Duration</th>
+            <th class="text-left px-4 py-3 font-medium text-gray-600">Distance</th>
+            <th class="text-right px-4 py-3 font-medium text-gray-600">Price</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          @foreach (var ride in Model.BookingHistory)
+          {
+            var distance = ride.EndOdometer.HasValue ? ride.EndOdometer.Value - ride.StartOdometer : 0;
+            var duration = ride.EndTime.HasValue ? ride.EndTime.Value - ride.StartTime : TimeSpan.Zero;
+            <tr class="hover:bg-gray-50">
+              <td class="px-4 py-3 font-mono text-gray-500">@ride.Id</td>
+              <td class="px-4 py-3">@ride.StartTime.ToString("g")</td>
+              <td class="px-4 py-3 text-gray-600">
+                @if (duration.TotalHours >= 1)
+                {
+                  @($"{(int)duration.TotalHours}h {duration.Minutes}m")
+                }
+                else
+                {
+                  @($"{duration.Minutes}m")
+                }
+              </td>
+              <td class="px-4 py-3 text-gray-600">@distance.ToString("N0") km</td>
+              <td class="px-4 py-3 text-right font-medium">
+                @if (ride.TotalPrice.HasValue)
+                {
+                  @ride.TotalPrice.Value.ToString("C2")
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</main>

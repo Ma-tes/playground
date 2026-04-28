@@ -1,0 +1,123 @@
+@model ShareCar.WebClient.App.Models.VehicleDetailViewModel
+
+<div class="bg-white rounded-lg border border-gray-200 p-6 mb-6">
+  <div class="flex items-start gap-4">
+    <div class="rounded-full bg-blue-50 p-3">
+      <span class="material-symbols-outlined text-3xl text-blue-600">directions_car</span>
+    </div>
+    <div class="flex-1">
+      <h2 class="text-2xl font-semibold">@Model.Vehicle.Model</h2>
+      <p class="text-gray-500 mt-1">License plate: <span class="font-mono font-medium">@Model.Vehicle.PlateNumber</span></p>
+    </div>
+    <div>
+      @if (Model.Vehicle.Status == "Available")
+      {
+        <span class="inline-flex items-center gap-1 rounded-full bg-green-50 px-3 py-1 text-sm font-medium text-green-700">
+          <span class="material-symbols-outlined text-base">check_circle</span>
+          Available
+        </span>
+      }
+      else if (Model.Vehicle.Status == "Rented")
+      {
+        <span class="inline-flex items-center gap-1 rounded-full bg-amber-50 px-3 py-1 text-sm font-medium text-amber-700">
+          <span class="material-symbols-outlined text-base">person</span>
+          Rented
+        </span>
+      }
+      else
+      {
+        <span class="inline-flex items-center gap-1 rounded-full bg-red-50 px-3 py-1 text-sm font-medium text-red-700">
+          <span class="material-symbols-outlined text-base">block</span>
+          @Model.Vehicle.Status
+        </span>
+      }
+    </div>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+  <div class="bg-white rounded-lg border border-gray-200 p-5">
+    <div class="flex items-center gap-2 text-gray-500 text-sm mb-1">
+      <span class="material-symbols-outlined text-lg">speed</span>
+      Odometer
+    </div>
+    <p class="text-2xl font-semibold">@Model.Vehicle.Odometer.ToString("N0") <span class="text-sm font-normal text-gray-500">km</span></p>
+  </div>
+
+  @if (Model.Statistics is not null)
+  {
+    <div class="bg-white rounded-lg border border-gray-200 p-5">
+      <div class="flex items-center gap-2 text-gray-500 text-sm mb-1">
+        <span class="material-symbols-outlined text-lg">route</span>
+        Total trips <span class="text-gray-400">(last month)</span>
+      </div>
+      <p class="text-2xl font-semibold">@Model.Statistics.TotalTrips</p>
+    </div>
+
+    <div class="bg-white rounded-lg border border-gray-200 p-5">
+      <div class="flex items-center gap-2 text-gray-500 text-sm mb-1">
+        <span class="material-symbols-outlined text-lg">straighten</span>
+        Total distance <span class="text-gray-400">(last month)</span>
+      </div>
+      <p class="text-2xl font-semibold">@Model.Statistics.TotalDistanceKm.ToString("N0") <span class="text-sm font-normal text-gray-500">km</span></p>
+    </div>
+  }
+</div>
+
+@if (Model.Vehicle.Status == "Available" && Model.ActiveBooking is null)
+{
+  <div class="bg-blue-50 rounded-lg border border-blue-200 p-5 flex items-center justify-between">
+    <div>
+      <h3 class="font-medium text-blue-900">This vehicle is available for rent</h3>
+      <p class="text-sm text-blue-700 mt-1">Click the button to rent this vehicle now.</p>
+    </div>
+    <form method="post" asp-action="Rent" asp-controller="Vehicles">
+      @Html.AntiForgeryToken()
+      <input type="hidden" name="vehicleId" value="@Model.Vehicle.Id" />
+      <input type="hidden" name="parkingLotId" value="@Model.ParkingLotId" />
+      <button type="submit"
+              class="rounded-md bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700 transition">
+        Rent this vehicle
+      </button>
+    </form>
+  </div>
+}
+else if (Model.Vehicle.Status == "Rented" && Model.ActiveBooking is not null && Model.ActiveBooking.VehicleId == Model.Vehicle.Id)
+{
+  <div class="bg-amber-50 rounded-lg border border-amber-200 p-5">
+    <div class="flex items-center gap-3 mb-3">
+      <span class="material-symbols-outlined text-2xl text-amber-600">directions_car</span>
+      <div>
+        <h3 class="font-medium text-amber-900">Return this vehicle</h3>
+        <p class="text-sm text-amber-700">
+          Started @Model.ActiveBooking.StartTime.ToString("g")
+          · Odometer at start: @Model.ActiveBooking.StartOdometer.ToString("N0") km
+          · Must return to parking lot #@Model.ActiveBooking.StartParkingLotId
+        </p>
+      </div>
+    </div>
+    <form method="post" asp-action="Return" asp-controller="Vehicles" class="flex items-end gap-3">
+      @Html.AntiForgeryToken()
+      <input type="hidden" name="bookingId" value="@Model.ActiveBooking.Id" />
+      <input type="hidden" name="parkingLotId" value="@Model.ActiveBooking.StartParkingLotId" />
+      <input type="hidden" name="vehicleId" value="@Model.Vehicle.Id" />
+      <div class="flex-1">
+        <label for="endOdometer" class="block text-sm font-medium text-amber-800 mb-1">Current odometer (km)</label>
+        <input type="number" name="endOdometer" id="endOdometer" min="@Model.ActiveBooking.StartOdometer" required
+               class="block w-full rounded-md border border-amber-300 bg-white px-3 py-2 text-sm focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none"
+               placeholder="e.g. @((Model.ActiveBooking.StartOdometer + 50).ToString("N0"))" />
+      </div>
+      <button type="submit"
+              class="rounded-md bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 transition">
+        Return vehicle
+      </button>
+    </form>
+  </div>
+}
+else if (Model.Vehicle.Status == "Available" && Model.ActiveBooking is not null)
+{
+  <div class="bg-amber-50 rounded-lg border border-amber-200 p-5 flex items-center gap-3">
+    <span class="material-symbols-outlined text-xl text-amber-600">info</span>
+    <p class="text-sm text-amber-800">You already have an active rental. Return it first before renting another vehicle.</p>
+  </div>
+}
