@@ -39,6 +39,17 @@ internal sealed class ParkingLotRepository : IParkingLotRepository
     await _dbContext.SaveChangesAsync();
   }
 
+  public async Task AdminUpdateAsync(int id, string name, double latitude, double longitude, int totalCapacity)
+  {
+    await _dbContext.ParkingLots
+      .Where(p => p.Id == id)
+      .ExecuteUpdateAsync(s => s
+        .SetProperty(p => p.Name, name)
+        .SetProperty(p => p.Latitude, latitude)
+        .SetProperty(p => p.Longitude, longitude)
+        .SetProperty(p => p.TotalCapacity, totalCapacity));
+  }
+
   public async Task DeleteAsync(int id)
   {
     ParkingLot? parkingLot = await _dbContext.ParkingLots.FindAsync(id);

@@ -18,33 +18,48 @@ public class DashboardController : Controller
     _apiClient = apiClient ?? throw new ArgumentNullException(nameof(apiClient));
   }
 
-  public async Task<IActionResult> Index(int? parkingLotId = null)
+  public async Task<IActionResult> Index()
   {
     var parkingLots = await _apiClient.GetParkingLotsAsync();
-    var activeBooking = await _apiClient.GetActiveBookingAsync();
-
-    VehicleDetailItem? activeVehicle = null;
-    if (activeBooking is not null)
-    {
-      activeVehicle = await _apiClient.GetVehicleByIdAsync(activeBooking.VehicleId);
-    }
-
-    var selected = parkingLotId.HasValue
-      ? parkingLots.FirstOrDefault(p => p.Id == parkingLotId.Value)
-      : null;
-
-    var vehicles = selected is not null
-      ? await _apiClient.GetVehiclesByParkingLotAsync(selected.Id)
-      : [];
 
     var model = new DashboardViewModel
     {
       ParkingLots = parkingLots,
-      SelectedParkingLotId = parkingLotId,
-      SelectedParkingLot = selected,
+    };
+
+    return View(model);
+  }
+
+  public async Task<IActionResult> Search(
+    [FromQuery] int[]? parkingLotIds = null,
+    string? search = null,
+    string? statusFilter = null,
+    string sortBy = "model",
+    string sortDir = "asc")
+  {
+    var parkingLots = await _apiClient.GetParkingLotsAsync();
+
+    List<VehicleItem> vehicles;
+    int totalVehicles;
+
+    var relativeParkingLotIds = parkingLotIds is { Length: > 0 } ?
+      parkingLotIds :
+      [.. parkingLots.Select(p => p.Id)];
+
+    var allInParkingLots = await _apiClient.SearchVehiclesAcrossLotsAsync(relativeParkingLotIds, null, null, sortBy, sortDir);
+    vehicles = await _apiClient.SearchVehiclesAcrossLotsAsync(relativeParkingLotIds, search, statusFilter, sortBy, sortDir);
+    totalVehicles = allInParkingLots.Count;
+
+    var model = new DashboardViewModel
+    {
+      ParkingLots = parkingLots,
+      SelectedParkingLotIds = relativeParkingLotIds,
       Vehicles = vehicles,
-      ActiveBooking = activeBooking,
-      ActiveVehicle = activeVehicle
+      Search = search,
+      StatusFilter = statusFilter,
+      SortBy = sortBy,
+      SortDir = sortDir,
+      TotalVehicles = totalVehicles,
     };
 
     return View(model);

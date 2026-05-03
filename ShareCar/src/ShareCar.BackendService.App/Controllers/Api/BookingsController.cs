@@ -27,7 +27,7 @@ public sealed class BookingsController : ControllerBase
 
     try
     {
-      var booking = await _shareCarService.RentVehicleAsync(userId, request.VehicleId);
+      var booking = await _shareCarService.RentVehicleAsync(userId, request.VehicleId, request.StartTime, request.EndTime);
 
       return Ok(new
       {
@@ -93,6 +93,51 @@ public sealed class BookingsController : ControllerBase
     });
   }
 
+  [Authorize(Roles = "Admin")]
+  [HttpGet]
+  public async Task<IActionResult> GetAllAsync(
+    [FromQuery] string sortBy = "starttime",
+    [FromQuery] string sortDir = "desc",
+    [FromQuery] int page = 1,
+    [FromQuery] int pageSize = 50)
+  {
+    var all = await _bookingRepository.GetAllAsync();
+
+    var sorted = (sortBy.ToLowerInvariant(), sortDir.ToLowerInvariant()) switch
+    {
+      ("starttime", "asc")  => all.OrderBy(b => b.StartTime),
+      ("starttime", _)      => all.OrderByDescending(b => b.StartTime),
+      ("userid",    "asc")  => all.OrderBy(b => b.UserId),
+      ("userid",    _)      => all.OrderByDescending(b => b.UserId),
+      ("vehicleid", "asc")  => all.OrderBy(b => b.VehicleId),
+      ("vehicleid", _)      => all.OrderByDescending(b => b.VehicleId),
+      (_,           "asc")  => all.OrderBy(b => b.Id),
+      _                     => all.OrderByDescending(b => b.Id)
+    };
+
+    var paged = sorted.Skip((page - 1) * pageSize).Take(pageSize);
+
+    return Ok(new
+    {
+      Total = all.Count(),
+      Page = page,
+      PageSize = pageSize,
+      Items = paged.Select(b => new
+      {
+        b.Id,
+        b.UserId,
+        b.VehicleId,
+        b.StartParkingLotId,
+        b.StartTime,
+        b.EndTime,
+        b.StartOdometer,
+        b.EndOdometer,
+        b.TotalPrice,
+        b.IsActive
+      })
+    });
+  }
+
   [HttpGet("my")]
   public async Task<IActionResult> GetMyBookingsAsync()
   {
@@ -115,6 +160,36 @@ public sealed class BookingsController : ControllerBase
     return Ok(result);
   }
 
+  [HttpGet("vehicle/{vehicleId}")]
+  public async Task<IActionResult> GetVehicleBookingsAsync(int vehicleId)
+  {
+    var bookings = await _bookingRepository.GetActiveByVehicleIdAsync(vehicleId);
+
+    var result = bookings.Select(b => new
+    {
+      b.StartTime,
+      b.EndTime
+    });
+
+    return Ok(result);
+  }
+
+  [HttpDelete("{id}")]
+  public async Task<IActionResult> CancelAsync(int id)
+  {
+    var userId = GetUserId();
+
+    try
+    {
+      await _shareCarService.CancelBookingAsync(id, userId);
+      return Ok(new { Message = "Booking cancelled successfully." });
+    }
+    catch (InvalidOperationException ex)
+    {
+      return BadRequest(new { ex.Message });
+    }
+  }
+
   private int GetUserId()
   {
     var claim = User.FindFirstValue(ClaimTypes.NameIdentifier)
@@ -124,5 +199,5 @@ public sealed class BookingsController : ControllerBase
   }
 }
 
-public sealed record RentRequest(int VehicleId);
+public sealed record RentRequest(int VehicleId, DateTime StartTime, DateTime EndTime);
 public sealed record ReturnRequest(int ParkingLotId, int EndOdometer);

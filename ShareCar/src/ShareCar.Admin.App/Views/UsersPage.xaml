@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="ShareCar.Admin.App.Views.UsersPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:models="clr-namespace:ShareCar.Admin.App.Models"
+    xmlns:viewmodels="clr-namespace:ShareCar.Admin.App.ViewModels"
+    x:DataType="viewmodels:UsersViewModel"
+    Title="USERS"
+    BackgroundColor="{StaticResource PageBackground}">
+
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="REFRESH" Command="{Binding LoadCommand}" />
+    </ContentPage.ToolbarItems>
+
+    <Grid RowDefinitions="Auto,Auto,Auto,*,Auto,Auto">
+
+        <!-- Error / Success banners -->
+        <Label
+            Grid.Row="0"
+            IsVisible="{Binding HasError}"
+            Text="{Binding ErrorMessage}"
+            Style="{StaticResource ErrorBannerStyle}" />
+        <Label
+            Grid.Row="0"
+            IsVisible="{Binding HasSuccess}"
+            Text="{Binding SuccessMessage}"
+            Style="{StaticResource SuccessBannerStyle}" />
+
+        <!-- Sort controls -->
+        <Grid
+            Grid.Row="1"
+            BackgroundColor="{StaticResource SurfaceColor}"
+            ColumnDefinitions="Auto,Auto,Auto,Auto,*,Auto"
+            Padding="16,10"
+            ColumnSpacing="8">
+            <Label
+                Grid.Column="0"
+                Text="SORT:"
+                FontFamily="Courier New"
+                FontSize="11"
+                TextColor="{StaticResource TextMuted}"
+                VerticalOptions="Center" />
+            <Button
+                Grid.Column="1"
+                Text="USERNAME"
+                Command="{Binding SortCommand}"
+                CommandParameter="Username"
+                Style="{StaticResource SortButtonStyle}" />
+            <Button
+                Grid.Column="2"
+                Text="EMAIL"
+                Command="{Binding SortCommand}"
+                CommandParameter="Email"
+                Style="{StaticResource SortButtonStyle}" />
+            <Button
+                Grid.Column="3"
+                Text="ROLE"
+                Command="{Binding SortCommand}"
+                CommandParameter="Role"
+                Style="{StaticResource SortButtonStyle}" />
+            <ActivityIndicator
+                Grid.Column="5"
+                IsRunning="{Binding IsBusy}"
+                IsVisible="{Binding IsBusy}"
+                Color="{StaticResource Accent}"
+                VerticalOptions="Center" />
+        </Grid>
+
+        <Grid
+            Grid.Row="2"
+            BackgroundColor="{StaticResource HeaderBg}"
+            ColumnDefinitions="50,160,*,90,80"
+            Padding="16,8">
+            <Label Grid.Column="0" Text="ID" Style="{StaticResource TableHeaderLabelStyle}" />
+            <Label Grid.Column="1" Text="USERNAME" Style="{StaticResource TableHeaderLabelStyle}" />
+            <Label Grid.Column="2" Text="EMAIL" Style="{StaticResource TableHeaderLabelStyle}" />
+            <Label Grid.Column="3" Text="ROLE" Style="{StaticResource TableHeaderLabelStyle}" />
+            <Label Grid.Column="4" Text="" Style="{StaticResource TableHeaderLabelStyle}" />
+        </Grid>
+
+        <CollectionView
+            Grid.Row="3"
+            ItemsSource="{Binding Users}"
+            SelectionMode="Single"
+            SelectedItem="{Binding SelectedUser}">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:UserItem">
+                    <VerticalStackLayout Spacing="0">
+                        <Grid
+                            ColumnDefinitions="50,160,*,90,80"
+                            Padding="16,10"
+                            BackgroundColor="{StaticResource SurfaceColor}">
+                            <Label
+                                Grid.Column="0"
+                                Text="{Binding Id}"
+                                Style="{StaticResource TableCellMutedStyle}" />
+                            <Label
+                                Grid.Column="1"
+                                Text="{Binding Username}"
+                                Style="{StaticResource TableCellStyle}" />
+                            <Label
+                                Grid.Column="2"
+                                Text="{Binding Email}"
+                                Style="{StaticResource TableCellStyle}" />
+                            <Label
+                                Grid.Column="3"
+                                Text="{Binding Role}"
+                                Style="{StaticResource TableCellStyle}" />
+                            <Button
+                                Grid.Column="4"
+                                Text="DELETE"
+                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:UsersViewModel}}, Path=DeleteCommand}"
+                                CommandParameter="{Binding .}"
+                                BackgroundColor="Transparent"
+                                TextColor="{StaticResource ErrorColor}"
+                                FontFamily="Courier New"
+                                FontSize="11"
+                                Padding="4,0"
+                                HeightRequest="32" />
+                        </Grid>
+                        <BoxView HeightRequest="1" BackgroundColor="{StaticResource BorderColor}" />
+                    </VerticalStackLayout>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <!-- Edit panel -->
+        <Border
+            Grid.Row="4"
+            IsVisible="{Binding HasSelection}"
+            BackgroundColor="{StaticResource SurfaceColor}"
+            Stroke="{StaticResource Accent}"
+            StrokeThickness="0"
+            Margin="0"
+            Padding="16,14">
+            <Grid RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="0">
+                <BoxView Grid.Row="0" HeightRequest="3" BackgroundColor="{StaticResource Accent}" Margin="0,0,0,12" />
+                <Label
+                    Grid.Row="1"
+                    Text="EDIT USER"
+                    FontFamily="Courier New"
+                    FontSize="11"
+                    FontAttributes="Bold"
+                    TextColor="{StaticResource Accent}"
+                    Margin="0,0,0,10" />
+                <Grid
+                    Grid.Row="2"
+                    ColumnDefinitions="70,300,70,200"
+                    RowDefinitions="Auto"
+                    ColumnSpacing="12">
+                    <Label
+                        Grid.Column="0"
+                        Text="Email:"
+                        FontFamily="Courier New"
+                        FontSize="13"
+                        TextColor="{StaticResource TextMuted}"
+                        VerticalOptions="Center" />
+                    <Entry
+                        Grid.Column="1"
+                        Text="{Binding EditEmail}"
+                        FontFamily="Courier New"
+                        FontSize="13"
+                        BackgroundColor="{StaticResource PageBackground}" />
+                    <Label
+                        Grid.Column="2"
+                        Text="Role:"
+                        FontFamily="Courier New"
+                        FontSize="13"
+                        TextColor="{StaticResource TextMuted}"
+                        VerticalOptions="Center" />
+                    <Picker
+                        Grid.Column="3"
+                        ItemsSource="{Binding AvailableRoles}"
+                        SelectedItem="{Binding EditRole}"
+                        FontFamily="Courier New"
+                        FontSize="13" />
+                </Grid>
+                <HorizontalStackLayout
+                    Grid.Row="3"
+                    HorizontalOptions="End"
+                    Spacing="8"
+                    Margin="0,12,0,0">
+                    <Button
+                        Text="CANCEL"
+                        Command="{Binding ClearSelectionCommand}"
+                        Style="{StaticResource SecondaryButtonStyle}" />
+                    <Button
+                        Text="SAVE CHANGES"
+                        Command="{Binding SaveCommand}"
+                        Style="{StaticResource PrimaryButtonStyle}" />
+                </HorizontalStackLayout>
+            </Grid>
+        </Border>
+
+    </Grid>
+</ContentPage>

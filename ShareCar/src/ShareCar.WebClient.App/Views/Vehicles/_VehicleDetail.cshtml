@@ -64,17 +64,30 @@
   }
 </div>
 
-@if (Model.Vehicle.Status == "Available" && Model.ActiveBooking is null)
+@if (Model.ActiveBooking is null)
 {
   <div class="bg-blue-50 rounded-lg border border-blue-200 p-5 flex items-center justify-between">
     <div>
       <h3 class="font-medium text-blue-900">This vehicle is available for rent</h3>
       <p class="text-sm text-blue-700 mt-1">Click the button to rent this vehicle now.</p>
     </div>
-    <form method="post" asp-action="Rent" asp-controller="Vehicles">
+    <form method="post" asp-action="Rent" asp-controller="Vehicles" data-ajax>
       @Html.AntiForgeryToken()
       <input type="hidden" name="vehicleId" value="@Model.Vehicle.Id" />
       <input type="hidden" name="parkingLotId" value="@Model.ParkingLotId" />
+      <div class="flex gap-4 mb-2">
+        <div>
+          <label for="startTime" class="block text-sm font-medium text-blue-800 mb-1">Start Time</label>
+          <input type="text" name="startTime" id="startTime" required
+                 data-blocked-ranges='@System.Text.Json.JsonSerializer.Serialize(Model.BlockedRanges.Select(b => new { from = b.StartTime.ToString("yyyy-MM-dd HH:mm"), to = b.EndTime.ToString("yyyy-MM-dd HH:mm") }))'
+                 class="block w-full rounded-md border border-blue-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none" />
+        </div>
+        <div>
+          <label for="endTime" class="block text-sm font-medium text-blue-800 mb-1">End Time</label>
+          <input type="text" name="endTime" id="endTime"
+                 class="block w-full rounded-md border border-blue-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none" />
+        </div>
+      </div>
       <button type="submit"
               class="rounded-md bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700 transition">
         Rent this vehicle
@@ -82,8 +95,29 @@
     </form>
   </div>
 }
-else if (Model.Vehicle.Status == "Rented" && Model.ActiveBooking is not null && Model.ActiveBooking.VehicleId == Model.Vehicle.Id)
+else if (Model.ActiveBooking is not null && Model.ActiveBooking.VehicleId == Model.Vehicle.Id)
 {
+  @if (Model.ActiveBooking.StartTime > DateTime.UtcNow)
+  {
+    <div class="bg-blue-50 rounded-lg border border-blue-200 p-5 flex items-center justify-between">
+      <div>
+        <h3 class="font-medium text-blue-900">Upcoming booking</h3>
+        <p class="text-sm text-blue-700 mt-1">
+          Starts @Model.ActiveBooking.StartTime.ToString("g") · Parking lot #@Model.ActiveBooking.StartParkingLotId
+        </p>
+      </div>
+      <form method="post" asp-action="Cancel" asp-controller="Vehicles" data-ajax>
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="bookingId" value="@Model.ActiveBooking.Id" />
+        <button type="submit"
+                class="rounded-md border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 transition">
+          Cancel booking
+        </button>
+      </form>
+    </div>
+  }
+  else
+  {
   <div class="bg-amber-50 rounded-lg border border-amber-200 p-5">
     <div class="flex items-center gap-3 mb-3">
       <span class="material-symbols-outlined text-2xl text-amber-600">directions_car</span>
@@ -96,7 +130,7 @@ else if (Model.Vehicle.Status == "Rented" && Model.ActiveBooking is not null && 
         </p>
       </div>
     </div>
-    <form method="post" asp-action="Return" asp-controller="Vehicles" class="flex items-end gap-3">
+    <form method="post" asp-action="Return" asp-controller="Vehicles" class="flex items-end gap-3" data-ajax>
       @Html.AntiForgeryToken()
       <input type="hidden" name="bookingId" value="@Model.ActiveBooking.Id" />
       <input type="hidden" name="parkingLotId" value="@Model.ActiveBooking.StartParkingLotId" />
@@ -113,8 +147,9 @@ else if (Model.Vehicle.Status == "Rented" && Model.ActiveBooking is not null && 
       </button>
     </form>
   </div>
+  }
 }
-else if (Model.Vehicle.Status == "Available" && Model.ActiveBooking is not null)
+else if (Model.ActiveBooking is not null)
 {
   <div class="bg-amber-50 rounded-lg border border-amber-200 p-5 flex items-center gap-3">
     <span class="material-symbols-outlined text-xl text-amber-600">info</span>

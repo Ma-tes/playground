@@ -47,6 +47,51 @@ public class BackendApiClient
     return JsonSerializer.Deserialize<List<VehicleItem>>(json, JsonOptions) ?? [];
   }
 
+  public async Task<List<VehicleItem>> GetVehiclesByFilterAsync(int parkingLotId, string? search, string? statusFilter, string sortBy, string sortDir)
+  {
+    var qs = $"api/vehicles/by-parking-lot/{parkingLotId}/filter" +
+             $"?sortBy={Uri.EscapeDataString(sortBy)}&sortDir={Uri.EscapeDataString(sortDir)}";
+
+    if (!string.IsNullOrWhiteSpace(search))
+      qs += $"&search={Uri.EscapeDataString(search)}";
+
+    if (!string.IsNullOrWhiteSpace(statusFilter))
+      qs += $"&statusFilter={Uri.EscapeDataString(statusFilter)}";
+
+    var response = await _client.GetAsync(qs);
+    if (!response.IsSuccessStatusCode)
+    {
+      return [];
+    }
+
+    var json = await response.Content.ReadAsStringAsync();
+
+    return JsonSerializer.Deserialize<List<VehicleItem>>(json, JsonOptions) ?? [];
+  }
+
+  public async Task<List<VehicleItem>> SearchVehiclesAcrossLotsAsync(int[] parkingLotIds, string? search, string? statusFilter, string sortBy, string sortDir)
+  {
+    var qs = "api/vehicles/search?" +
+             string.Join("&", parkingLotIds.Select(id => $"parkingLotIds={id}")) +
+             $"&sortBy={Uri.EscapeDataString(sortBy)}&sortDir={Uri.EscapeDataString(sortDir)}";
+
+    if (!string.IsNullOrWhiteSpace(search))
+      qs += $"&search={Uri.EscapeDataString(search)}";
+
+    if (!string.IsNullOrWhiteSpace(statusFilter))
+      qs += $"&statusFilter={Uri.EscapeDataString(statusFilter)}";
+
+    var response = await _client.GetAsync(qs);
+    if (!response.IsSuccessStatusCode)
+    {
+      return [];
+    }
+
+    var json = await response.Content.ReadAsStringAsync();
+
+    return JsonSerializer.Deserialize<List<VehicleItem>>(json, JsonOptions) ?? [];
+  }
+
   public async Task<ActiveBookingItem?> GetActiveBookingAsync()
   {
     var response = await _client.GetAsync("api/bookings/active");
@@ -60,9 +105,9 @@ public class BackendApiClient
     return JsonSerializer.Deserialize<ActiveBookingItem>(json, JsonOptions);
   }
 
-  public async Task<RentResultItem?> RentVehicleAsync(int vehicleId)
+  public async Task<RentResultItem?> RentVehicleAsync(int vehicleId, DateTime startTime, DateTime endTime)
   {
-    var payload = JsonSerializer.Serialize(new { VehicleId = vehicleId });
+    var payload = JsonSerializer.Serialize(new { VehicleId = vehicleId, StartTime = startTime, EndTime = endTime });
     var content = new StringContent(payload, Encoding.UTF8, "application/json");
 
     var response = await _client.PostAsync("api/bookings/rent", content);
@@ -96,6 +141,19 @@ public class BackendApiClient
     return JsonSerializer.Deserialize<ReturnResultItem>(json, JsonOptions);
   }
 
+  public async Task<bool> CancelBookingAsync(int bookingId)
+  {
+    var request = new HttpRequestMessage(HttpMethod.Delete, $"api/bookings/{bookingId}");
+    var response = await _client.SendAsync(request);
+    if (!response.IsSuccessStatusCode)
+    {
+      LastErrorMessage = await ExtractErrorMessageAsync(response);
+      return false;
+    }
+
+    return true;
+  }
+
   public async Task<List<BookingHistoryItem>> GetMyBookingsAsync()
   {
     var response = await _client.GetAsync("api/bookings/my");
@@ -120,6 +178,19 @@ public class BackendApiClient
     var json = await response.Content.ReadAsStringAsync();
 
     return JsonSerializer.Deserialize<VehicleDetailItem>(json, JsonOptions);
+  }
+
+  public async Task<List<BookingRangeItem>> GetVehicleBookingsAsync(int vehicleId)
+  {
+    var response = await _client.GetAsync($"api/bookings/vehicle/{vehicleId}");
+    if (!response.IsSuccessStatusCode)
+    {
+      return [];
+    }
+
+    var json = await response.Content.ReadAsStringAsync();
+
+    return JsonSerializer.Deserialize<List<BookingRangeItem>>(json, JsonOptions) ?? [];
   }
 
   public async Task<VehicleStatisticsItem?> GetVehicleStatisticsAsync(int vehicleId)
@@ -179,7 +250,7 @@ public class BackendApiClient
     {
       var json = await response.Content.ReadAsStringAsync();
       var doc = JsonSerializer.Deserialize<JsonElement>(json);
-      if (doc.TryGetProperty("message", out var msg))
+      if (doc.TryGetProperty("message", out var msg) || doc.TryGetProperty("Message", out msg))
       {
         return msg.GetString();
       }

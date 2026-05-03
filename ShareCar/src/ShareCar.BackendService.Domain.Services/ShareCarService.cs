@@ -30,14 +30,14 @@ internal sealed class ShareCarService : IShareCarService
     _pricingConfiguration = pricingConfiguration ?? throw new ArgumentNullException(nameof(pricingConfiguration));
   }
 
-  public async Task<Booking> RentVehicleAsync(int userId, int vehicleId)
+  public async Task<Booking> RentVehicleAsync(int userId, int vehicleId, DateTime startTime, DateTime endTime)
   {
-    var vehicle = await _vehicleRepository.GetByIdAsync(vehicleId)
+    Vehicle? vehicle = await _vehicleRepository.GetByIdAsync(vehicleId)
       ?? throw new InvalidOperationException($"Vehicle {vehicleId} not found.");
 
-    if (vehicle.Status != VehicleStatus.Available)
+    if (vehicle.Status == VehicleStatus.Blocked)
     {
-      throw new InvalidOperationException($"Vehicle {vehicleId} is not available (current status: {vehicle.Status}).");
+      throw new InvalidOperationException($"Vehicle {vehicleId} is blocked.");
     }
 
     if (!vehicle.CurrentParkingLotId.HasValue)
@@ -45,25 +45,33 @@ internal sealed class ShareCarService : IShareCarService
       throw new InvalidOperationException($"Vehicle {vehicleId} is not parked at any lot.");
     }
 
-    var activeBooking = await _bookingRepository.GetActiveByUserIdAsync(userId);
-    if (activeBooking is not null)
+    if (await _bookingRepository.HasOverlappingBookingForUserAsync(userId, startTime, endTime))
     {
-      throw new InvalidOperationException($"User {userId} already has an active booking ({activeBooking.Id}).");
+      throw new InvalidOperationException($"User {userId} already has an active booking in the selected time.");
+    }
+
+    if (await _bookingRepository.HasOverlappingBookingAsync(vehicleId, startTime, endTime))
+    {
+      throw new InvalidOperationException($"Vehicle {vehicleId} is already booked for the selected time.");
     }
 
     var startParkingLotId = vehicle.CurrentParkingLotId.Value;
-    var booking = new Booking(userId, vehicleId, startParkingLotId, vehicle.Odometer);
+    var booking = new Booking(userId, vehicleId, startParkingLotId, startTime, endTime, vehicle.Odometer);
+
     await _bookingRepository.CreateAsync(booking);
 
-    var oldStatus = vehicle.Status;
-    vehicle.Status = VehicleStatus.Rented;
-    vehicle.CurrentParkingLotId = null;
-    await _vehicleRepository.UpdateAsync(vehicle);
+    if (startTime <= DateTime.UtcNow)
+    {
+      var oldStatus = vehicle.Status;
+      vehicle.Status = VehicleStatus.Rented;
 
-    await _statusHistoryRepository.CreateAsync(
-      new StatusHistory(vehicleId, oldStatus, VehicleStatus.Rented, $"User:{userId}"));
+      await _vehicleRepository.UpdateAsync(vehicle);
 
-    _logger.LogInformation("User {UserId} rented vehicle {VehicleId}, booking {BookingId}", userId, vehicleId, booking.Id);
+      await _statusHistoryRepository.CreateAsync(
+        new StatusHistory(vehicleId, oldStatus, VehicleStatus.Rented, $"Booking:{booking.Id}"));
+    }
+
+    _logger.LogInformation("User {UserId} booked vehicle {VehicleId}, booking {BookingId}", userId, vehicleId, booking.Id);
 
     return booking;
   }
@@ -86,7 +94,17 @@ internal sealed class ShareCarService : IShareCarService
     var vehicle = await _vehicleRepository.GetByIdAsync(booking.VehicleId)
       ?? throw new InvalidOperationException($"Vehicle {booking.VehicleId} not found.");
 
+    if (endOdometer < booking.StartOdometer)
+    {
+      throw new InvalidOperationException($"End odometer ({endOdometer}) cannot be less than start odometer ({booking.StartOdometer}).");
+    }
+
     var endTime = DateTime.UtcNow;
+    if (endTime < booking.StartTime)
+    {
+      throw new InvalidOperationException("You cannot return a vehicle before the booking has started. The rental period hasn't begun yet.");
+    }
+
     var totalPrice = await CalculateTripPriceAsync(booking.StartOdometer, endOdometer, booking.StartTime, endTime);
 
     booking.EndTime = endTime;
@@ -96,19 +114,45 @@ internal sealed class ShareCarService : IShareCarService
     await _bookingRepository.UpdateAsync(booking);
 
     var oldStatus = vehicle.Status;
-    vehicle.Status = VehicleStatus.Available;
     vehicle.Odometer = endOdometer;
     vehicle.CurrentParkingLotId = returnParkingLotId;
+    vehicle.Status = VehicleStatus.Available;
     await _vehicleRepository.UpdateAsync(vehicle);
 
     await _statusHistoryRepository.CreateAsync(
-      new StatusHistory(vehicle.Id, oldStatus, VehicleStatus.Available, $"User:{booking.UserId}"));
+      new StatusHistory(booking.VehicleId, oldStatus, VehicleStatus.Available, $"Booking:{bookingId}"));
 
     _logger.LogInformation(
       "Booking {BookingId} returned: vehicle {VehicleId}, distance {Distance} km, price {Price:C}",
       bookingId, vehicle.Id, endOdometer - booking.StartOdometer, totalPrice);
 
     return booking;
+  }
+
+  public async Task CancelBookingAsync(int bookingId, int userId)
+  {
+    var booking = await _bookingRepository.GetByIdAsync(bookingId)
+      ?? throw new InvalidOperationException($"Booking {bookingId} not found.");
+
+    if (booking.UserId != userId)
+    {
+      throw new InvalidOperationException("You can only cancel your own bookings.");
+    }
+
+    if (!booking.IsActive)
+    {
+      throw new InvalidOperationException("This booking has already been completed or cancelled.");
+    }
+
+    if (booking.StartTime <= DateTime.UtcNow)
+    {
+      throw new InvalidOperationException("You cannot cancel a booking that has already started. Please return the vehicle instead.");
+    }
+
+    booking.IsActive = false;
+    await _bookingRepository.UpdateAsync(booking);
+
+    _logger.LogInformation("Booking {BookingId} cancelled by user {UserId}", bookingId, userId);
   }
 
   public async Task BlockVehicleAsync(int vehicleId, int adminId, string reason)
@@ -179,6 +223,7 @@ internal sealed class ShareCarService : IShareCarService
 
     var bookings = await _bookingRepository.GetAllAsync();
     var lastMonth = DateTime.UtcNow.AddMonths(-1);
+
     var vehicleBookings = bookings
       .Where(b => b.VehicleId == vehicleId && !b.IsActive && b.StartTime >= lastMonth)
       .ToList();

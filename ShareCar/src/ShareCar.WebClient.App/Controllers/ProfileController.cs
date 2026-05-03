@@ -36,4 +36,27 @@ public class ProfileController : Controller
 
     return View(model);
   }
+
+  [HttpGet("data")]
+  public async Task<IActionResult> Data()
+  {
+    var activeBooking = await _apiClient.GetActiveBookingAsync();
+    var bookings = await _apiClient.GetMyBookingsAsync();
+
+    VehicleDetailItem? activeVehicle = null;
+    if (activeBooking is not null)
+    {
+      activeVehicle = await _apiClient.GetVehicleByIdAsync(activeBooking.VehicleId);
+    }
+
+    var history = bookings.Where(b => !b.IsActive).OrderByDescending(b => b.StartTime).ToList();
+
+    return Json(new
+    {
+      activeBooking,
+      activeVehicle,
+      completedRidesCount = history.Count,
+      bookingHistory = history
+    });
+  }
 }

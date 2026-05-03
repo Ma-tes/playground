@@ -8,5 +8,13 @@ public class ParkingLot
   public double Longitude { get; init; }
   public int TotalCapacity { get; init; }
 
+  public ParkingLot(string name, double latitude, double longitude, int totalCapacity)
+  {
+    Name = name;
+    Latitude = latitude;
+    Longitude = longitude;
+    TotalCapacity = totalCapacity;
+  }
+
   private ParkingLot() { }
 }

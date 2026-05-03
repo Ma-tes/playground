@@ -1,1 +1,263 @@
-/* Tailwind handles styling. This file is intentionally minimal. */
+/* ================================================================
+   ShareCar — Retro Apple Light Theme
+   Warm cream, monospace, horizontal scan lines.
+   Inspired by terminal.shop/cron — clean, minimal, readable.
+   ================================================================ */
+
+:root {
+  --c-bg:        #F6F1EE;
+  --c-surface:   #FFFFFF;
+  --c-surface2:  #EDE8E3;
+  --c-border:    #D8D0C8;
+  --c-border2:   #C0B8AE;
+  --c-text:      #1A1A1A;
+  --c-muted:     #7A7068;
+  --c-faint:     #B0A898;
+  --c-err:       #9A2020;
+  --c-err-bg:    #FDF5F3;
+  --c-err-bdr:   #E0C0B8;
+  --c-ok:        #2A6A1E;
+  --c-ok-bg:     #F3F9EE;
+  --c-ok-bdr:    #B0D898;
+  --c-warn:      #7A5000;
+  --c-warn-bg:   #FDF8EE;
+  --c-warn-bdr:  #D8C088;
+}
+
+/* ── Reset ────────────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  border-radius: 0 !important;
+  box-sizing: border-box;
+}
+
+/* ── Base ─────────────────────────────────────────────────────── */
+html, body {
+  background-color: var(--c-bg) !important;
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 3px,
+    rgba(0, 0, 0, 0.035) 3px,
+    rgba(0, 0, 0, 0.035) 4px
+  ) !important;
+  color: var(--c-text) !important;
+  font-family: 'Courier Prime', 'Courier New', Courier, monospace !important;
+  -webkit-font-smoothing: auto !important;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--c-bg); }
+::-webkit-scrollbar-thumb { background: var(--c-border2); }
+::-webkit-scrollbar-thumb:hover { background: var(--c-muted); }
+
+/* ── Backgrounds ──────────────────────────────────────────────── */
+.bg-gray-50,
+.bg-gray-100   { background-color: transparent !important; }
+.bg-white      { background-color: var(--c-surface) !important; }
+.bg-blue-50    { background-color: var(--c-surface) !important; }
+.bg-green-50   { background-color: var(--c-ok-bg)   !important; }
+.bg-red-50     { background-color: var(--c-err-bg)  !important; }
+.bg-amber-50   { background-color: var(--c-warn-bg) !important; }
+
+thead,
+thead.bg-gray-50,
+.bg-gray-50.border-b { background-color: var(--c-surface2) !important; }
+
+/* ── Borders ──────────────────────────────────────────────────── */
+.border-gray-200,
+.border-gray-300  { border-color: var(--c-border) !important; }
+.border-blue-200,
+.border-blue-300  { border-color: var(--c-border2) !important; }
+.border-green-200 { border-color: var(--c-ok-bdr) !important; }
+.border-red-200   { border-color: var(--c-err-bdr) !important; }
+.border-amber-200,
+.border-amber-300 { border-color: var(--c-warn-bdr) !important; }
+.divide-gray-100 > * + * { border-color: var(--c-border) !important; }
+
+/* ── Text ─────────────────────────────────────────────────────── */
+.text-gray-900, .text-gray-800, .text-gray-700 { color: var(--c-text)  !important; }
+.text-gray-600, .text-gray-500                 { color: var(--c-muted) !important; }
+.text-gray-400                                 { color: var(--c-faint) !important; }
+.text-white                                    { color: #fff           !important; }
+
+.text-blue-600, .text-blue-900,
+.text-blue-800, .text-blue-700                 { color: var(--c-text)  !important; }
+.text-blue-500                                 { color: var(--c-muted) !important; }
+
+.text-green-700, .text-green-600               { color: var(--c-ok)   !important; }
+.text-red-700,   .text-red-600, .text-red-500  { color: var(--c-err)  !important; }
+.text-amber-900, .text-amber-800,
+.text-amber-700, .text-amber-600               { color: var(--c-warn) !important; }
+
+/* ── Hover text ───────────────────────────────────────────────── */
+.hover\:text-blue-500:hover,
+.hover\:text-blue-600:hover  { color: var(--c-muted) !important; }
+.hover\:text-gray-700:hover  { color: var(--c-text)  !important; }
+.hover\:text-gray-600:hover,
+.hover\:text-gray-500:hover  { color: var(--c-muted) !important; }
+
+/* ── Primary buttons ─────────────────────────────────────────── */
+.bg-blue-600 {
+  background-color: var(--c-text) !important;
+  color:            #fff          !important;
+  border:           1px solid var(--c-text) !important;
+}
+.hover\:bg-blue-700:hover {
+  background-color: #444    !important;
+  color:            #fff    !important;
+  border-color:     #444    !important;
+}
+
+/* ── Amber buttons ───────────────────────────────────────────── */
+.bg-amber-600 {
+  background-color: var(--c-warn) !important;
+  color:            #fff          !important;
+  border:           1px solid var(--c-warn) !important;
+}
+.hover\:bg-amber-700:hover {
+  background-color: #5C3C00 !important;
+  color:            #fff    !important;
+  border-color:     #5C3C00 !important;
+}
+
+/* ── Table row hover ──────────────────────────────────────────── */
+.hover\:bg-gray-50:hover { background-color: var(--c-surface2) !important; }
+.hover\:border-blue-300:hover { border-color: var(--c-text) !important; }
+.hover\:shadow-sm:hover { box-shadow: none !important; }
+
+/* ── Links ────────────────────────────────────────────────────── */
+a {
+  color: var(--c-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--c-border2);
+}
+a:hover {
+  color: var(--c-muted);
+  text-decoration-color: var(--c-text);
+}
+a.no-underline, .no-underline { text-decoration: none !important; }
+
+/* ── Inputs & selects ─────────────────────────────────────────── */
+input, select, textarea {
+  background-color: var(--c-surface) !important;
+  color:            var(--c-text)    !important;
+  border-color:     var(--c-border)  !important;
+  caret-color:      #D2691E;
+  font-family:      inherit          !important;
+  font-size:        inherit          !important;
+}
+input::placeholder, textarea::placeholder {
+  color: var(--c-faint) !important;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: #D2691E              !important;
+  box-shadow:   0 0 0 1px #D2691E   !important;
+  outline:      none                 !important;
+}
+select option {
+  background-color: var(--c-surface);
+  color: var(--c-text);
+}
+
+/* ── Focus ring ───────────────────────────────────────────────── */
+*:focus-visible { outline: 1px solid var(--c-text) !important; outline-offset: 2px; }
+.focus\:ring-1:focus,
+.focus\:ring-2:focus { box-shadow: 0 0 0 1px var(--c-text) !important; }
+
+/* ── Shadows → none (clean flat) ─────────────────────────────── */
+.shadow-xl, .shadow-sm, .shadow { box-shadow: none !important; }
+
+/* ── Dialog ───────────────────────────────────────────────────── */
+dialog {
+  background-color: var(--c-surface)       !important;
+  color:            var(--c-text)          !important;
+  border:           1px solid var(--c-border) !important;
+}
+dialog::backdrop { background: rgba(0, 0, 0, 0.25); }
+
+/* ── Secondary buttons ───────────────────────────────────────── */
+button.border, button.border-gray-300 {
+  background-color: transparent     !important;
+  border-color:     var(--c-border) !important;
+  color:            var(--c-muted)  !important;
+}
+button.border:hover, button.border-gray-300:hover {
+  background-color: var(--c-surface2) !important;
+  color:            var(--c-text)     !important;
+}
+
+/* ── Buttons base ─────────────────────────────────────────────── */
+button {
+  font-family:    inherit !important;
+  letter-spacing: 0.02em;
+  cursor:         pointer;
+}
+
+/* ── Modal ────────────────────────────────────────────────────── */
+#vehicleModal > .absolute.inset-0 { background: rgba(0, 0, 0, 0.25) !important; }
+#vehicleModal .bg-gray-50 {
+  background-color: var(--c-surface)       !important;
+  border:           1px solid var(--c-border) !important;
+}
+
+/* ── Loader ───────────────────────────────────────────────────── */
+.animate-spin { color: var(--c-faint) !important; }
+
+/* ── Flatpickr ────────────────────────────────────────────────── */
+.flatpickr-calendar {
+  background:  var(--c-surface)          !important;
+  border:      1px solid var(--c-border) !important;
+  box-shadow:  none                      !important;
+  color:       var(--c-text)             !important;
+  font-family: inherit                   !important;
+}
+.flatpickr-day {
+  color:        var(--c-text) !important;
+  border-color: transparent   !important;
+}
+.flatpickr-day:hover, .flatpickr-day:focus {
+  background:   var(--c-surface2) !important;
+  border-color: var(--c-border)   !important;
+}
+.flatpickr-day.selected, .flatpickr-day.selected:hover {
+  background:   var(--c-text) !important;
+  border-color: var(--c-text) !important;
+  color:        #fff          !important;
+}
+.flatpickr-day.today { border-color: var(--c-text) !important; }
+.flatpickr-day.disabled, .flatpickr-day.disabled:hover {
+  color: var(--c-faint) !important;
+}
+.flatpickr-months .flatpickr-month,
+.flatpickr-weekwrapper .flatpickr-weekday,
+.flatpickr-weekdays {
+  background: var(--c-surface2) !important;
+  color:      var(--c-text)     !important;
+  fill:       var(--c-text)     !important;
+}
+.flatpickr-current-month,
+.flatpickr-current-month .numInputWrapper,
+.numInput.cur-year,
+.flatpickr-monthDropdown-months {
+  color:       var(--c-text) !important;
+  background:  transparent   !important;
+  font-family: inherit       !important;
+}
+.flatpickr-weekday { color: var(--c-muted) !important; }
+.flatpickr-prev-month, .flatpickr-next-month {
+  color: var(--c-muted) !important;
+  fill:  var(--c-muted) !important;
+}
+.flatpickr-prev-month:hover svg, .flatpickr-next-month:hover svg {
+  fill: var(--c-text) !important;
+}
+.flatpickr-time input, .flatpickr-time .flatpickr-am-pm {
+  background:   var(--c-surface) !important;
+  color:        var(--c-text)    !important;
+  border-color: var(--c-border)  !important;
+}
+.flatpickr-time input:focus { background: var(--c-surface2) !important; }

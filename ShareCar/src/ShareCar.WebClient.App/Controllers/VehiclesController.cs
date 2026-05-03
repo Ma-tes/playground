@@ -27,13 +27,15 @@ public class VehiclesController : Controller
 
     var stats = await _apiClient.GetVehicleStatisticsAsync(id);
     var activeBooking = await _apiClient.GetActiveBookingAsync();
+    var blockedRanges = await _apiClient.GetVehicleBookingsAsync(id);
 
     var model = new VehicleDetailViewModel
     {
       Vehicle = vehicle,
       Statistics = stats,
       ParkingLotId = parkingLotId,
-      ActiveBooking = activeBooking
+      ActiveBooking = activeBooking,
+      BlockedRanges = blockedRanges
     };
 
     return PartialView("_VehicleDetail", model);
@@ -41,19 +43,15 @@ public class VehiclesController : Controller
 
   [HttpPost]
   [ValidateAntiForgeryToken]
-  public async Task<IActionResult> Rent(int vehicleId, int? parkingLotId)
+  public async Task<IActionResult> Rent(int vehicleId, int? parkingLotId, DateTime startTime, DateTime endTime)
   {
-    var result = await _apiClient.RentVehicleAsync(vehicleId);
+    var result = await _apiClient.RentVehicleAsync(vehicleId, startTime, endTime);
     if (result is null)
     {
-      TempData["Error"] = _apiClient.LastErrorMessage ?? "Failed to rent vehicle.";
-
-      return RedirectToAction("Index", "Dashboard", new { parkingLotId });
+      return Json(new { success = false, message = _apiClient.LastErrorMessage ?? "Failed to rent vehicle." });
     }
 
-    TempData["Success"] = $"Vehicle rented successfully! Booking #{result.Id}";
-
-    return RedirectToAction("Index", "Dashboard", new { parkingLotId });
+    return Json(new { success = true, message = $"Vehicle rented successfully! Booking #{result.Id}" });
   }
 
   [HttpPost]
@@ -61,15 +59,26 @@ public class VehiclesController : Controller
   public async Task<IActionResult> Return(int bookingId, int parkingLotId, int endOdometer, int vehicleId)
   {
     var result = await _apiClient.ReturnVehicleAsync(bookingId, parkingLotId, endOdometer);
+
     if (result is null)
     {
-      TempData["Error"] = _apiClient.LastErrorMessage ?? "Failed to return vehicle.";
-
-      return RedirectToAction("Index", "Dashboard", new { parkingLotId });
+      return Json(new { success = false, message = _apiClient.LastErrorMessage ?? "Failed to return vehicle." });
     }
 
-    TempData["Success"] = $"Vehicle returned! Trip cost: {result.TotalPrice:C2}";
+    return Json(new { success = true, message = $"Vehicle returned! Trip cost: {result.TotalPrice:C2}" });
+  }
 
-    return RedirectToAction("Index", "Dashboard", new { parkingLotId });
+  [HttpPost]
+  [ValidateAntiForgeryToken]
+  public async Task<IActionResult> Cancel(int bookingId)
+  {
+    var ok = await _apiClient.CancelBookingAsync(bookingId);
+
+    if (!ok)
+    {
+      return Json(new { success = false, message = _apiClient.LastErrorMessage ?? "Failed to cancel booking." });
+    }
+
+    return Json(new { success = true, message = "Booking cancelled successfully." });
   }
 }

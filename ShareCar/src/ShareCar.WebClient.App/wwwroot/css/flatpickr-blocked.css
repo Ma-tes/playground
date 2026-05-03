@@ -1,0 +1,37 @@
+/* Highlight blocked days in flatpickr — terminal palette */
+.flatpickr-blocked-day {
+  background: rgba(192, 56, 56, 0.25) !important;
+  color: #c03838 !important;
+}
+
+.flatpickr-partial-blocked-day {
+  position: relative;
+}
+
+.flatpickr-partial-blocked-day::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 4px;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  background: #c09030;
+  border-radius: 50% !important;
+}
+
+.flatpickr-blocked-times {
+  margin: 6px 8px 0;
+  font-size: 11px;
+  color: #c03838;
+  font-family: inherit;
+}
+
+.flatpickr-blocked-times.is-hidden {
+  display: none;
+}
+
+.flatpickr-blocked-time {
+    color: #dc2626;
+    font-weight: 600;
+}

@@ -8,5 +8,6 @@ public interface IParkingLotRepository
   Task<IEnumerable<ParkingLot>> GetAllAsync();
   Task<int> CreateAsync(ParkingLot parkingLot);
   Task UpdateAsync(ParkingLot parkingLot);
+  Task AdminUpdateAsync(int id, string name, double latitude, double longitude, int totalCapacity);
   Task DeleteAsync(int id);
 }

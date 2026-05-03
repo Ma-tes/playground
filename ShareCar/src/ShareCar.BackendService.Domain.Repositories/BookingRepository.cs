@@ -33,6 +33,32 @@ internal sealed class BookingRepository : IBookingRepository
       .FirstOrDefaultAsync(b => b.UserId == userId && b.IsActive);
   }
 
+  public async Task<IEnumerable<Booking>> GetActiveByVehicleIdAsync(int vehicleId)
+  {
+    return await _dbContext.Bookings
+      .Where(b => b.VehicleId == vehicleId && b.IsActive)
+      .OrderBy(b => b.StartTime)
+      .ToListAsync();
+  }
+
+  public async Task<bool> HasOverlappingBookingAsync(int vehicleId, DateTime startTime, DateTime endTime)
+  {
+    return await _dbContext.Bookings.AnyAsync(b =>
+      b.VehicleId == vehicleId &&
+      b.IsActive &&
+      startTime < b.EndTime &&
+      endTime > b.StartTime);
+  }
+
+  public async Task<bool> HasOverlappingBookingForUserAsync(int userId, DateTime startTime, DateTime endTime)
+  {
+    return await _dbContext.Bookings.AnyAsync(b =>
+      b.UserId == userId &&
+      b.IsActive &&
+      startTime < b.EndTime &&
+      endTime > b.StartTime);
+  }
+
   public async Task<IEnumerable<Booking>> GetAllAsync()
   {
     return await _dbContext.Bookings.ToListAsync();

@@ -19,6 +19,8 @@ var pricingConfig = builder.Configuration.GetSection("Pricing").Get<PricingConfi
 var jwtConfig = builder.Configuration.GetSection("Jwt").Get<JwtConfiguration>()
   ?? throw new InvalidOperationException("JWT configuration not found.");
 
+// value
+
 builder.Services.AddControllers();
 builder.Services.AddSingleton<IPricingConfiguration>(pricingConfig);
 builder.Services.AddSingleton<IJwtConfiguration>(jwtConfig);

@@ -28,8 +28,71 @@ internal sealed class VehicleRepository : IVehicleRepository
   public async Task<IEnumerable<Vehicle>> GetAvailableByParkingLotAsync(int lotId)
   {
     return await _dbContext.Vehicles
-      .Where(v => v.CurrentParkingLotId == lotId && v.Status == VehicleStatus.Available)
+      .Where(v => v.CurrentParkingLotId == lotId && v.Status != VehicleStatus.Blocked)
       .ToListAsync();
+  }
+
+  public async Task<IEnumerable<Vehicle>> GetFilteredByParkingLotAsync(int lotId, string? search, string? statusFilter, string sortBy, string sortDir)
+  {
+    var query = _dbContext.Vehicles
+      .Where(v => v.CurrentParkingLotId == lotId && v.Status != VehicleStatus.Blocked);
+
+    if (!string.IsNullOrWhiteSpace(search))
+    {
+      var term = search.Trim();
+      query = query.Where(v => v.Model.Contains(term) || v.PlateNumber.Contains(term));
+    }
+
+    if (!string.IsNullOrWhiteSpace(statusFilter) &&
+      Enum.TryParse<VehicleStatus>(statusFilter, ignoreCase: true, out var parsedStatus))
+    {
+      query = query.Where(v => v.Status == parsedStatus);
+    }
+
+    query = (sortBy?.ToLowerInvariant(), sortDir?.ToLowerInvariant()) switch
+    {
+      ("odometer", "desc") => query.OrderByDescending(v => v.Odometer),
+      ("odometer", _)      => query.OrderBy(v => v.Odometer),
+      ("status",   "desc") => query.OrderByDescending(v => v.Status),
+      ("status",   _)      => query.OrderBy(v => v.Status),
+      (_,          "desc") => query.OrderByDescending(v => v.Model),
+      _                    => query.OrderBy(v => v.Model),
+    };
+
+    return await query.ToListAsync();
+  }
+
+  public async Task<IEnumerable<Vehicle>> GetFilteredAcrossLotsAsync(int[] lotIds, string? search, string? statusFilter, string sortBy, string sortDir)
+  {
+    var query = _dbContext.Vehicles
+      .Where(v => v.CurrentParkingLotId.HasValue &&
+        lotIds.Contains(v.CurrentParkingLotId.Value) &&
+        v.Status != VehicleStatus.Blocked
+      );
+
+    if (!string.IsNullOrWhiteSpace(search))
+    {
+      var term = search.Trim();
+      query = query.Where(v => v.Model.Contains(term) || v.PlateNumber.Contains(term));
+    }
+
+    if (!string.IsNullOrWhiteSpace(statusFilter) &&
+      Enum.TryParse<VehicleStatus>(statusFilter, ignoreCase: true, out var parsedStatus))
+    {
+      query = query.Where(v => v.Status == parsedStatus);
+    }
+
+    query = (sortBy?.ToLowerInvariant(), sortDir?.ToLowerInvariant()) switch
+    {
+      ("odometer", "desc") => query.OrderByDescending(v => v.Odometer),
+      ("odometer", _)      => query.OrderBy(v => v.Odometer),
+      ("status",   "desc") => query.OrderByDescending(v => v.Status),
+      ("status",   _)      => query.OrderBy(v => v.Status),
+      (_,          "desc") => query.OrderByDescending(v => v.Model),
+      _                    => query.OrderBy(v => v.Model),
+    };
+
+    return await query.ToListAsync();
   }
 
   public async Task<int> CreateAsync(Vehicle vehicle)
@@ -44,6 +107,17 @@ internal sealed class VehicleRepository : IVehicleRepository
   {
     _dbContext.Vehicles.Update(vehicle);
     await _dbContext.SaveChangesAsync();
+  }
+
+  public async Task AdminUpdateAsync(int id, string model, string plateNumber, int odometer, int? currentParkingLotId)
+  {
+    await _dbContext.Vehicles
+      .Where(v => v.Id == id)
+      .ExecuteUpdateAsync(s => s
+        .SetProperty(v => v.Model, model)
+        .SetProperty(v => v.PlateNumber, plateNumber)
+        .SetProperty(v => v.Odometer, odometer)
+        .SetProperty(v => v.CurrentParkingLotId, currentParkingLotId));
   }
 
   public async Task DeleteAsync(int id)

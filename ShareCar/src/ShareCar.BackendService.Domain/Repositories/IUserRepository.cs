@@ -9,5 +9,6 @@ public interface IUserRepository
   Task<IEnumerable<User>> GetAllAsync();
   Task<int> CreateAsync(User user);
   Task UpdateAsync(User user);
+  Task AdminUpdateAsync(int id, string email, UserRole role);
   Task DeleteAsync(int id);
 }

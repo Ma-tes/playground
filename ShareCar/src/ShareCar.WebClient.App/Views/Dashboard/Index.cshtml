@@ -4,29 +4,36 @@
 }
 
 <header class="bg-white border-b border-gray-200">
-  <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+  <div class="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between relative">
   <a asp-action="Index" asp-controller="Dashboard" class="flex items-center gap-2 text-gray-900 no-underline">
-    <span class="material-symbols-outlined text-blue-600">directions_car</span>
-    <span class="font-semibold">ShareCar</span>
+    <span style="display:inline-block;width:12px;height:12px;background:#D2691E;flex-shrink:0"></span>
+    <span class="font-semibold text-gray-700" style="letter-spacing:0.12em">SHARECAR<span class="text-gray-400">.TERMINAL</span></span>
   </a>
-  <div class="flex items-center gap-3">
-    <a asp-action="Index" asp-controller="Profile" class="text-sm text-blue-600 hover:text-blue-500 flex items-center gap-1 no-underline">
-    <span class="material-symbols-outlined text-lg">person</span>
-    @User.Identity?.Name
-    </a>
-    <form method="post" asp-action="Logout" asp-controller="Account">
+  <nav class="absolute left-1/2 -translate-x-1/2 flex items-center gap-6" style="font-family: 'Instrument Serif', serif;">
+    <a asp-action="Index" asp-controller="Dashboard" class="text-sm font-bold uppercase no-underline" style="letter-spacing:0.15em;color:#D2691E">Dashboard</a>
+    <a asp-action="Search" asp-controller="Dashboard" class="text-sm font-bold uppercase text-gray-500 hover:text-gray-700 no-underline" style="letter-spacing:0.15em">Search</a>
+    <a asp-action="Index" asp-controller="Profile" class="text-sm font-bold uppercase text-gray-500 hover:text-gray-700 no-underline" style="letter-spacing:0.15em">Profile</a>
+  </nav>
+  <form method="post" asp-action="Logout" asp-controller="Account" class="inline">
     @Html.AntiForgeryToken()
-    <button type="submit" class="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1 transition">
-      <span class="material-symbols-outlined text-lg">logout</span>
-      Sign out
-    </button>
-    </form>
-  </div>
+    <button type="submit" class="text-sm font-bold uppercase text-gray-500 hover:text-gray-700 transition" style="letter-spacing:0.15em">Sign out</button>
+  </form>
   </div>
 </header>
 
 <main class="flex-1 max-w-5xl mx-auto w-full px-4 py-8">
-  <h1 class="text-2xl font-semibold mb-6">Dashboard</h1>
+  <h1 class="text-[44px] sm:text-[64px] md:text-[80px] leading-tight tracking-[-0.175px] text-black text-center font-semibold mb-6" style="font-family: 'Instrument Serif', serif;">
+    A funny thing happens, when you design simple system.
+  </h1>
+  <div class="flex items-start justify-center gap-6 mb-8" style="font-family: 'Instrument Serif', serif;">
+    <p class="text-sm leading-relaxed text-gray-600 max-w-[200px] text-right hidden md:block">
+      The future of shared mobility starts here. A fleet management terminal built for simplicity — browse lots, pick a vehicle, and drive away. No paperwork, no hassle.
+    </p>
+    <img src="~/images/dashboard_image.png" alt="ShareCar Terminal" class="w-1/2 flex-shrink-0" />
+    <p class="text-sm leading-relaxed text-gray-600 max-w-[200px] text-left hidden md:block">
+      Every vehicle at your fingertips. Real-time availability across all parking lots, instant booking confirmations, and transparent pricing — car sharing the way it should be.
+    </p>
+  </div>
 
   @if (TempData["Success"] is string successMsg)
   {
@@ -44,113 +51,10 @@
   </div>
   }
 
-  @if (Model.ActiveBooking is not null)
-  {
-  <div class="mb-6 bg-amber-50 rounded-lg border border-amber-200 p-5">
-    <div class="flex items-center gap-3">
-    <span class="material-symbols-outlined text-2xl text-amber-600">directions_car</span>
-    <div class="flex-1">
-      <h2 class="font-medium text-amber-900">Active Rental — Booking #@Model.ActiveBooking.Id</h2>
-      <p class="text-sm text-amber-700">
-      @if (Model.ActiveVehicle is not null)
-      {
-        <span>@Model.ActiveVehicle.Model (@Model.ActiveVehicle.PlateNumber)</span>
-      }
-      · Started @Model.ActiveBooking.StartTime.ToString("g")
-      · Odometer at start: @Model.ActiveBooking.StartOdometer.ToString("N0") km
-      </p>
-    </div>
-    <a asp-action="Detail" asp-controller="Vehicles" asp-route-id="@Model.ActiveBooking.VehicleId" asp-route-parkingLotId="@Model.ActiveBooking.StartParkingLotId"
-       class="rounded-md bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 transition no-underline open-vehicle-dialog"
-       data-vehicle-id="@Model.ActiveBooking.VehicleId" data-parking-lot-id="@Model.ActiveBooking.StartParkingLotId">
-      Return vehicle
-    </a>
-    </div>
-  </div>
-  }
-
-  <div class="flex justify-center mb-8">
-  <form method="get" asp-action="Index" asp-controller="Dashboard" class="w-full max-w-md">
-    <label for="parkingLotId" class="block text-sm font-medium text-gray-700 mb-1">Select a parking lot</label>
-    <div class="relative">
-    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xl">local_parking</span>
-    <select name="parkingLotId" id="parkingLotId" onchange="this.form.submit()"
-        class="block w-full rounded-md border border-gray-300 bg-white pl-10 pr-8 py-2.5 text-sm appearance-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition">
-      <option value="">— Choose parking lot —</option>
-      @foreach (var lot in Model.ParkingLots)
-      {
-      <option value="@lot.Id" selected="@(Model.SelectedParkingLotId == lot.Id)">
-        @lot.Name (@lot.AvailableVehicles available)
-      </option>
-      }
-    </select>
-    <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg pointer-events-none">expand_more</span>
-    </div>
-  </form>
-  </div>
-
-  @if (Model.SelectedParkingLot is not null)
-  {
-  <div class="mb-6 bg-white rounded-lg border border-gray-200 p-4 flex items-center gap-4">
-    <span class="material-symbols-outlined text-3xl text-amber-600">local_parking</span>
-    <div>
-    <h2 class="font-medium">@Model.SelectedParkingLot.Name</h2>
-    <p class="text-sm text-gray-500">
-      Capacity: @Model.SelectedParkingLot.TotalCapacity spots
-      · @Model.SelectedParkingLot.AvailableVehicles vehicles available
-      · GPS: @Model.SelectedParkingLot.Latitude.ToString("F4"), @Model.SelectedParkingLot.Longitude.ToString("F4")
-    </p>
-    </div>
-  </div>
-
-  @if (Model.Vehicles.Count > 0)
-  {
-    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
-    <table class="w-full text-sm">
-      <thead class="bg-gray-50 border-b border-gray-200">
-      <tr>
-        <th class="text-left px-4 py-3 font-medium text-gray-600">Vehicle</th>
-        <th class="text-left px-4 py-3 font-medium text-gray-600">Plate</th>
-        <th class="text-left px-4 py-3 font-medium text-gray-600">Odometer</th>
-        <th class="text-left px-4 py-3 font-medium text-gray-600">Status</th>
-      </tr>
-      </thead>
-      <tbody class="divide-y divide-gray-100">
-      @foreach (var vehicle in Model.Vehicles)
-      {
-        <tr class="hover:bg-gray-50 transition cursor-pointer open-vehicle-dialog" data-vehicle-id="@vehicle.Id" data-parking-lot-id="@Model.SelectedParkingLotId">
-        <td class="px-4 py-3 flex items-center gap-2">
-          <span class="material-symbols-outlined text-blue-600 text-lg">directions_car</span>
-          <span class="text-blue-600">@vehicle.Model</span>
-        </td>
-        <td class="px-4 py-3 font-mono text-gray-600">@vehicle.PlateNumber</td>
-        <td class="px-4 py-3 text-gray-600">@vehicle.Odometer.ToString("N0") km</td>
-        <td class="px-4 py-3">
-          <span class="inline-flex items-center gap-1 rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-medium text-green-700">
-          <span class="material-symbols-outlined text-sm">check_circle</span>
-          @vehicle.Status
-          </span>
-        </td>
-        </tr>
-      }
-      </tbody>
-    </table>
-    </div>
-  }
-  else
-  {
-    <div class="text-center py-12 text-gray-400">
-    <span class="material-symbols-outlined text-4xl">no_transfer</span>
-    <p class="mt-2 text-sm">No vehicles available at this parking lot.</p>
-    </div>
-  }
-  }
-  else
-  {
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
     @foreach (var lot in Model.ParkingLots)
     {
-    <a asp-action="Index" asp-controller="Dashboard" asp-route-parkingLotId="@lot.Id"
+    <a asp-action="Search" asp-controller="Dashboard" asp-route-parkingLotIds="@lot.Id"
        class="bg-white rounded-lg border border-gray-200 p-5 hover:border-blue-300 hover:shadow-sm transition no-underline text-gray-900 block">
       <div class="flex items-center gap-3 mb-3">
       <span class="material-symbols-outlined text-amber-600">local_parking</span>
@@ -164,67 +68,4 @@
     </a>
     }
   </div>
-  }
 </main>
-
-<!-- Vehicle Detail Modal -->
-<div id="vehicleModal" class="fixed inset-0 z-50 hidden">
-  <div class="absolute inset-0 bg-black/40" id="vehicleModalBackdrop"></div>
-  <div class="absolute inset-0 flex items-center justify-center p-4">
-    <div class="bg-gray-50 rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto relative">
-      <button id="vehicleModalClose" type="button"
-              class="absolute top-3 right-3 z-10 rounded-full bg-white border border-gray-200 p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition">
-        <span class="material-symbols-outlined text-xl">close</span>
-      </button>
-      <div id="vehicleModalContent" class="p-6">
-        <div class="flex items-center justify-center py-12 text-gray-400">
-          <span class="material-symbols-outlined text-3xl animate-spin">progress_activity</span>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-@section Scripts {
-<script>
-  (function () {
-    const modal = document.getElementById('vehicleModal');
-    const content = document.getElementById('vehicleModalContent');
-    const backdrop = document.getElementById('vehicleModalBackdrop');
-    const closeBtn = document.getElementById('vehicleModalClose');
-
-    function openModal(vehicleId, parkingLotId) {
-      content.innerHTML = '<div class="flex items-center justify-center py-12 text-gray-400"><span class="material-symbols-outlined text-3xl animate-spin">progress_activity</span></div>';
-      modal.classList.remove('hidden');
-      document.body.style.overflow = 'hidden';
-
-      const url = `/Vehicles/Detail?id=${vehicleId}&parkingLotId=${parkingLotId}`;
-      fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-        .then(r => r.ok ? r.text() : Promise.reject(r.statusText))
-        .then(html => { content.innerHTML = html; })
-        .catch(() => {
-          content.innerHTML = '<div class="text-center py-12 text-red-500"><span class="material-symbols-outlined text-3xl">error</span><p class="mt-2 text-sm">Failed to load vehicle details.</p></div>';
-        });
-    }
-
-    function closeModal() {
-      modal.classList.add('hidden');
-      document.body.style.overflow = '';
-    }
-
-    backdrop.addEventListener('click', closeModal);
-    closeBtn.addEventListener('click', closeModal);
-    document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape' && !modal.classList.contains('hidden')) closeModal();
-    });
-
-    document.querySelectorAll('.open-vehicle-dialog').forEach(function (el) {
-      el.addEventListener('click', function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        openModal(this.dataset.vehicleId, this.dataset.parkingLotId);
-      });
-    });
-  })();
-</script>
-}

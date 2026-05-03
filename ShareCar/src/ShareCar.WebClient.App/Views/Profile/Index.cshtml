@@ -1,27 +1,23 @@
 @model ShareCar.WebClient.App.Models.ProfileViewModel
 @{
-  ViewData["Title"] = "My Profile";
+  ViewData["Title"] = "wip: profile";
 }
 
 <header class="bg-white border-b border-gray-200">
-  <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+  <div class="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between relative">
     <a asp-action="Index" asp-controller="Dashboard" class="flex items-center gap-2 text-gray-900 no-underline">
-      <span class="material-symbols-outlined text-blue-600">directions_car</span>
-      <span class="font-semibold">ShareCar</span>
+      <span style="display:inline-block;width:12px;height:12px;background:#D2691E;flex-shrink:0"></span>
+      <span class="font-semibold text-gray-700" style="letter-spacing:0.12em">SHARECAR<span class="text-gray-400">.TERMINAL</span></span>
     </a>
-    <div class="flex items-center gap-3">
-      <a asp-action="Index" asp-controller="Profile" class="text-sm text-blue-600 hover:text-blue-500 flex items-center gap-1 no-underline">
-        <span class="material-symbols-outlined text-lg">person</span>
-        @User.Identity?.Name
-      </a>
-      <form method="post" asp-action="Logout" asp-controller="Account">
-        @Html.AntiForgeryToken()
-        <button type="submit" class="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1 transition">
-          <span class="material-symbols-outlined text-lg">logout</span>
-          Sign out
-        </button>
-      </form>
-    </div>
+    <nav class="absolute left-1/2 -translate-x-1/2 flex items-center gap-6" style="font-family: 'Instrument Serif', serif;">
+      <a asp-action="Index" asp-controller="Dashboard" class="text-sm font-bold uppercase text-gray-500 hover:text-gray-700 no-underline" style="letter-spacing:0.15em">Dashboard</a>
+      <a asp-action="Search" asp-controller="Dashboard" class="text-sm font-bold uppercase text-gray-500 hover:text-gray-700 no-underline" style="letter-spacing:0.15em">Search</a>
+      <a asp-action="Index" asp-controller="Profile" class="text-sm font-bold uppercase no-underline" style="letter-spacing:0.15em;color:#D2691E">Profile</a>
+    </nav>
+    <form method="post" asp-action="Logout" asp-controller="Account" class="inline">
+      @Html.AntiForgeryToken()
+      <button type="submit" class="text-sm font-bold uppercase text-gray-500 hover:text-gray-700 transition" style="letter-spacing:0.15em">Sign out</button>
+    </form>
   </div>
 </header>
 
@@ -41,86 +37,203 @@
       </div>
       <div>
         <h1 class="text-2xl font-semibold">@Model.Username</h1>
-        <p class="text-gray-500 text-sm">@Model.BookingHistory.Count completed rides</p>
+        <p id="completedRidesCount" class="text-gray-500 text-sm">@Model.BookingHistory.Count completed rides</p>
       </div>
     </div>
   </div>
 
-  @if (Model.ActiveBooking is not null)
-  {
-    <div class="mb-6 bg-amber-50 rounded-lg border border-amber-200 p-5">
-      <div class="flex items-center gap-3">
-        <span class="material-symbols-outlined text-2xl text-amber-600">directions_car</span>
-        <div class="flex-1">
-          <h2 class="font-medium text-amber-900">Active Rental — Booking #@Model.ActiveBooking.Id</h2>
-          <p class="text-sm text-amber-700">
-            @if (Model.ActiveVehicle is not null)
-            {
-              <span>@Model.ActiveVehicle.Model (@Model.ActiveVehicle.PlateNumber)</span>
-            }
-            · Started @Model.ActiveBooking.StartTime.ToString("g")
-            · Odometer at start: @Model.ActiveBooking.StartOdometer.ToString("N0") km
-          </p>
-        </div>
-        <a asp-action="Detail" asp-controller="Vehicles" asp-route-id="@Model.ActiveBooking.VehicleId" asp-route-parkingLotId="@Model.ActiveBooking.StartParkingLotId"
-           class="rounded-md bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 transition no-underline">
-          Return vehicle
-        </a>
+  <div id="activeBookingBanner" class="mb-6 bg-amber-50 rounded-lg border border-amber-200 p-5 @(Model.ActiveBooking is null ? "hidden" : "")">
+    <div class="flex items-center gap-3">
+      <span class="material-symbols-outlined text-2xl text-amber-600">directions_car</span>
+      <div class="flex-1">
+        <h2 class="font-medium text-amber-900">Active Rental — Booking #<span id="bannerBookingId">@(Model.ActiveBooking?.Id)</span></h2>
+        <p class="text-sm text-amber-700">
+          <span id="bannerVehicleInfo">@(Model.ActiveVehicle is not null ? $"{Model.ActiveVehicle.Model} ({Model.ActiveVehicle.PlateNumber})" : "")</span>
+          · Started <span id="bannerStartTime">@(Model.ActiveBooking?.StartTime.ToString("g"))</span>
+          · Odometer at start: <span id="bannerStartOdometer">@(Model.ActiveBooking?.StartOdometer.ToString("N0"))</span> km
+        </p>
       </div>
+      @if (Model.ActiveBooking is not null && Model.ActiveBooking.StartTime > DateTime.UtcNow)
+      {
+        <form method="post" asp-action="Cancel" asp-controller="Vehicles" data-ajax>
+          @Html.AntiForgeryToken()
+          <input type="hidden" name="bookingId" value="@Model.ActiveBooking.Id" />
+          <button type="submit"
+                  class="rounded-md border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 transition">
+            Cancel booking
+          </button>
+        </form>
+      }
+      else
+      {
+        <button type="button" onclick="document.getElementById('returnDialog').showModal()"
+                class="rounded-md bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 transition">
+          Return vehicle
+        </button>
+      }
     </div>
-  }
+  </div>
+
+  <dialog id="returnDialog" class="rounded-lg border border-amber-200 p-0 shadow-xl backdrop:bg-black/40 w-full max-w-sm">
+    <div class="p-6">
+      <h3 class="text-lg font-semibold mb-1">Return vehicle</h3>
+      <p class="text-sm text-gray-500 mb-4">
+        Odometer at start: <span id="dialogStartOdometer" class="font-medium">@(Model.ActiveBooking?.StartOdometer.ToString("N0")) km</span>
+      </p>
+      <form method="post" asp-action="Return" asp-controller="Vehicles" data-ajax>
+        @Html.AntiForgeryToken()
+        <input type="hidden" id="dialogBookingId" name="bookingId" value="@(Model.ActiveBooking?.Id)" />
+        <input type="hidden" id="dialogParkingLotId" name="parkingLotId" value="@(Model.ActiveBooking?.StartParkingLotId)" />
+        <input type="hidden" id="dialogVehicleId" name="vehicleId" value="@(Model.ActiveBooking?.VehicleId)" />
+        <div class="mb-4">
+          <label for="endOdometer" class="block text-sm font-medium text-gray-700 mb-1">Current odometer (km)</label>
+          <input type="number" name="endOdometer" id="endOdometer"
+                 min="@(Model.ActiveBooking?.StartOdometer ?? 0)" required
+                 placeholder="e.g. @((Model.ActiveBooking?.StartOdometer ?? 0) + 50)"
+                 class="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none" />
+        </div>
+        <div class="flex justify-end gap-3">
+          <button type="button" onclick="document.getElementById('returnDialog').close()"
+                  class="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
+            Cancel
+          </button>
+          <button type="submit"
+                  class="rounded-md bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 transition">
+            Confirm return
+          </button>
+        </div>
+      </form>
+    </div>
+  </dialog>
 
   <h2 class="text-lg font-semibold mb-4">Ride History</h2>
 
-  @if (Model.BookingHistory.Count == 0)
-  {
-    <div class="text-center py-12 text-gray-400">
-      <span class="material-symbols-outlined text-4xl">history</span>
-      <p class="mt-2 text-sm">No completed rides yet.</p>
-    </div>
-  }
-  else
-  {
-    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
-      <table class="w-full text-sm">
-        <thead class="bg-gray-50 border-b border-gray-200">
-          <tr>
-            <th class="text-left px-4 py-3 font-medium text-gray-600">#</th>
-            <th class="text-left px-4 py-3 font-medium text-gray-600">Date</th>
-            <th class="text-left px-4 py-3 font-medium text-gray-600">Duration</th>
-            <th class="text-left px-4 py-3 font-medium text-gray-600">Distance</th>
-            <th class="text-right px-4 py-3 font-medium text-gray-600">Price</th>
+  <div id="noRidesPlaceholder" class="text-center py-12 text-gray-400 @(Model.BookingHistory.Count > 0 ? "hidden" : "")">
+    <span class="material-symbols-outlined text-4xl">history</span>
+    <p class="mt-2 text-sm">No completed rides yet.</p>
+  </div>
+
+  <div id="rideHistoryTableContainer" class="bg-white rounded-lg border border-gray-200 overflow-hidden @(Model.BookingHistory.Count == 0 ? "hidden" : "")">
+    <table class="w-full text-sm">
+      <thead class="bg-gray-50 border-b border-gray-200">
+        <tr>
+          <th class="text-left px-4 py-3 font-medium text-gray-600">#</th>
+          <th class="text-left px-4 py-3 font-medium text-gray-600">Date</th>
+          <th class="text-left px-4 py-3 font-medium text-gray-600">Duration</th>
+          <th class="text-left px-4 py-3 font-medium text-gray-600">Distance</th>
+          <th class="text-right px-4 py-3 font-medium text-gray-600">Price</th>
+        </tr>
+      </thead>
+      <tbody id="rideHistoryTableBody" class="divide-y divide-gray-100">
+        @foreach (var ride in Model.BookingHistory)
+        {
+          var distance = ride.EndOdometer.HasValue ? ride.EndOdometer.Value - ride.StartOdometer : 0;
+          var duration = ride.EndTime.HasValue ? ride.EndTime.Value - ride.StartTime : TimeSpan.Zero;
+          <tr class="hover:bg-gray-50">
+            <td class="px-4 py-3 font-mono text-gray-500">@ride.Id</td>
+            <td class="px-4 py-3">@ride.StartTime.ToString("g")</td>
+            <td class="px-4 py-3 text-gray-600">
+              @if (duration.TotalHours >= 1)
+              {
+                @($"{(int)duration.TotalHours}h {duration.Minutes}m")
+              }
+              else
+              {
+                @($"{duration.Minutes}m")
+              }
+            </td>
+            <td class="px-4 py-3 text-gray-600">@distance.ToString("N0") km</td>
+            <td class="px-4 py-3 text-right font-medium">
+              @if (ride.TotalPrice.HasValue)
+              {
+                @ride.TotalPrice.Value.ToString("C2")
+              }
+            </td>
           </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-100">
-          @foreach (var ride in Model.BookingHistory)
-          {
-            var distance = ride.EndOdometer.HasValue ? ride.EndOdometer.Value - ride.StartOdometer : 0;
-            var duration = ride.EndTime.HasValue ? ride.EndTime.Value - ride.StartTime : TimeSpan.Zero;
-            <tr class="hover:bg-gray-50">
-              <td class="px-4 py-3 font-mono text-gray-500">@ride.Id</td>
-              <td class="px-4 py-3">@ride.StartTime.ToString("g")</td>
-              <td class="px-4 py-3 text-gray-600">
-                @if (duration.TotalHours >= 1)
-                {
-                  @($"{(int)duration.TotalHours}h {duration.Minutes}m")
-                }
-                else
-                {
-                  @($"{duration.Minutes}m")
-                }
-              </td>
-              <td class="px-4 py-3 text-gray-600">@distance.ToString("N0") km</td>
-              <td class="px-4 py-3 text-right font-medium">
-                @if (ride.TotalPrice.HasValue)
-                {
-                  @ride.TotalPrice.Value.ToString("C2")
-                }
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    </div>
-  }
+        }
+      </tbody>
+    </table>
+  </div>
 </main>
+
+<script>
+  function fmtDate(iso) {
+    return new Date(iso).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' });
+  }
+
+  function fmtNum(n) {
+    return Number(n).toLocaleString();
+  }
+
+  function fmtPrice(n) {
+    return n != null
+      ? Number(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+      : '';
+  }
+
+  async function refreshProfileData() {
+    try {
+      const resp = await fetch('/Profile/Data', { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+      if (!resp.ok) return;
+
+      const data = await resp.json();
+      document.getElementById('completedRidesCount').textContent = data.completedRidesCount + ' completed rides';
+
+      // Active booking banner
+      const banner = document.getElementById('activeBookingBanner');
+      if (data.activeBooking) {
+        document.getElementById('bannerBookingId').textContent = data.activeBooking.id;
+        document.getElementById('bannerVehicleInfo').textContent = data.activeVehicle
+          ? data.activeVehicle.model + ' (' + data.activeVehicle.plateNumber + ')'
+          : '';
+        document.getElementById('bannerStartTime').textContent = fmtDate(data.activeBooking.startTime);
+        document.getElementById('bannerStartOdometer').textContent = fmtNum(data.activeBooking.startOdometer);
+
+        // Sync dialog fields so the form stays correct
+        document.getElementById('dialogBookingId').value = data.activeBooking.id;
+        document.getElementById('dialogParkingLotId').value = data.activeBooking.startParkingLotId;
+        document.getElementById('dialogVehicleId').value = data.activeBooking.vehicleId;
+        document.getElementById('dialogStartOdometer').textContent = fmtNum(data.activeBooking.startOdometer) + ' km';
+        const odoInput = document.getElementById('endOdometer');
+        odoInput.min = data.activeBooking.startOdometer;
+        odoInput.placeholder = 'e.g. ' + (data.activeBooking.startOdometer + 50);
+
+        banner.classList.remove('hidden');
+      } else {
+        banner.classList.add('hidden');
+      }
+
+      // Ride history
+      const noRides = document.getElementById('noRidesPlaceholder');
+      const tableContainer = document.getElementById('rideHistoryTableContainer');
+      const tbody = document.getElementById('rideHistoryTableBody');
+
+      if (data.bookingHistory.length === 0) {
+        noRides.classList.remove('hidden');
+        tableContainer.classList.add('hidden');
+      } else {
+        noRides.classList.add('hidden');
+        tableContainer.classList.remove('hidden');
+        tbody.innerHTML = data.bookingHistory.map(function (ride) {
+          const distance = ride.endOdometer != null ? ride.endOdometer - ride.startOdometer : 0;
+          const durationMs = ride.endTime ? new Date(ride.endTime) - new Date(ride.startTime) : 0;
+          const totalMins = Math.floor(durationMs / 60000);
+          const hours = Math.floor(totalMins / 60);
+          const mins = totalMins % 60;
+          const dur = hours >= 1 ? hours + 'h ' + mins + 'm' : mins + 'm';
+          return '<tr class="hover:bg-gray-50">' +
+            '<td class="px-4 py-3 font-mono text-gray-500">' + ride.id + '</td>' +
+            '<td class="px-4 py-3">' + fmtDate(ride.startTime) + '</td>' +
+            '<td class="px-4 py-3 text-gray-600">' + dur + '</td>' +
+            '<td class="px-4 py-3 text-gray-600">' + fmtNum(distance) + ' km</td>' +
+            '<td class="px-4 py-3 text-right font-medium">' + fmtPrice(ride.totalPrice) + '</td>' +
+            '</tr>';
+        }).join('');
+      }
+    } catch (e) {
+      console.error('Failed to refresh profile data', e);
+    }
+  }
+
+  setInterval(refreshProfileData, 30000);
+</script>

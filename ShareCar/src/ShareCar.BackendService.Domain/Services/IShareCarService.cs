@@ -4,8 +4,9 @@ namespace ShareCar.BackendService.Domain.Services;
 
 public interface IShareCarService
 {
-  Task<Booking> RentVehicleAsync(int userId, int vehicleId);
+  Task<Booking> RentVehicleAsync(int userId, int vehicleId, DateTime startTime, DateTime endTime);
   Task<Booking> ReturnVehicleAsync(int bookingId, int returnParkingLotId, int endOdometer);
+  Task CancelBookingAsync(int bookingId, int userId);
   Task BlockVehicleAsync(int vehicleId, int adminId, string reason);
   Task UnblockVehicleAsync(int vehicleId);
   Task<decimal> CalculateTripPriceAsync(int startOdometer, int endOdometer, DateTime startTime, DateTime endTime);

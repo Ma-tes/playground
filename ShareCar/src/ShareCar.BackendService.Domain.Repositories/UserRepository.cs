@@ -44,6 +44,15 @@ internal sealed class UserRepository : IUserRepository
     await _dbContext.SaveChangesAsync();
   }
 
+  public async Task AdminUpdateAsync(int id, string email, UserRole role)
+  {
+    await _dbContext.Users
+      .Where(u => u.Id == id)
+      .ExecuteUpdateAsync(s => s
+        .SetProperty(u => u.Email, email)
+        .SetProperty(u => u.Role, role));
+  }
+
   public async Task DeleteAsync(int id)
   {
     var user = await _dbContext.Users.FindAsync(id);

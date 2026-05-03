@@ -9,5 +9,14 @@ public class Vehicle
   public VehicleStatus Status { get; set; }
   public int Odometer { get; set; }
 
+  public Vehicle(string model, string plateNumber, int? currentParkingLotId, VehicleStatus status, int odometer)
+  {
+    Model = model;
+    PlateNumber = plateNumber;
+    CurrentParkingLotId = currentParkingLotId;
+    Status = status;
+    Odometer = odometer;
+  }
+
   private Vehicle() { }
 }
