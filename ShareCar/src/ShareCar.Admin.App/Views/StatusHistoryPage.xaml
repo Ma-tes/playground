@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="ShareCar.Admin.App.Views.StatusHistoryPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:models="clr-namespace:ShareCar.Admin.App.Models"
+    xmlns:viewmodels="clr-namespace:ShareCar.Admin.App.ViewModels"
+    x:DataType="viewmodels:StatusHistoryViewModel"
+    Title="STATUS HISTORY"
+    BackgroundColor="{StaticResource PageBackground}">
+
+    <Grid RowDefinitions="Auto,Auto,Auto,Auto,*">
+
+        <!-- Messages -->
+        <Label Grid.Row="0" IsVisible="{Binding HasError}" Text="{Binding ErrorMessage}" Style="{StaticResource ErrorBannerStyle}" />
+
+        <!-- Vehicle ID input -->
+        <Grid
+            Grid.Row="1"
+            BackgroundColor="{StaticResource SurfaceColor}"
+            ColumnDefinitions="Auto,120,Auto,Auto,*,Auto"
+            Padding="16,10"
+            ColumnSpacing="8">
+            <Label Grid.Column="0" Text="VEHICLE ID:" FontFamily="Courier New" FontSize="11" TextColor="{StaticResource TextMuted}" VerticalOptions="Center" />
+            <Entry Grid.Column="1" Text="{Binding VehicleIdInput}" Keyboard="Numeric" />
+            <Button Grid.Column="2" Text="LOAD" Command="{Binding LoadCommand}" Style="{StaticResource PrimaryButtonStyle}" />
+            <Label Grid.Column="3" IsVisible="{Binding HasVehicleIdError}" Text="{Binding VehicleIdError}" Style="{StaticResource FieldErrorLabelStyle}" VerticalOptions="Center" />
+            <ActivityIndicator Grid.Column="5" IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" Color="{StaticResource Accent}" VerticalOptions="Center" />
+        </Grid>
+
+        <!-- Table header -->
+        <Grid
+            Grid.Row="3"
+            BackgroundColor="{StaticResource HeaderBg}"
+            ColumnDefinitions="50,100,100,160,120"
+            Padding="16,8">
+            <Label Grid.Column="0" Text="ID" Style="{StaticResource TableHeaderLabelStyle}" />
+            <Label Grid.Column="1" Text="FROM" Style="{StaticResource TableHeaderLabelStyle}" />
+            <Label Grid.Column="2" Text="TO" Style="{StaticResource TableHeaderLabelStyle}" />
+            <Label Grid.Column="3" Text="WHEN" Style="{StaticResource TableHeaderLabelStyle}" />
+            <Label Grid.Column="4" Text="BY" Style="{StaticResource TableHeaderLabelStyle}" />
+        </Grid>
+
+        <!-- List -->
+        <CollectionView
+            Grid.Row="4"
+            ItemsSource="{Binding History}"
+            SelectionMode="None">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:StatusHistoryItem">
+                    <VerticalStackLayout Spacing="0">
+                        <Grid
+                            ColumnDefinitions="50,100,100,160,120"
+                            Padding="16,10"
+                            BackgroundColor="{StaticResource SurfaceColor}">
+                            <Label Grid.Column="0" Text="{Binding Id}" Style="{StaticResource TableCellMutedStyle}" />
+                            <Label Grid.Column="1" Text="{Binding OldStatus}" Style="{StaticResource TableCellMutedStyle}" />
+                            <Label Grid.Column="2" Text="{Binding NewStatus}" Style="{StaticResource TableCellStyle}" />
+                            <Label Grid.Column="3" Text="{Binding ChangedAt, StringFormat='{0:yyyy-MM-dd HH:mm}'}" Style="{StaticResource TableCellMutedStyle}" />
+                            <Label Grid.Column="4" Text="{Binding TriggeredBy}" Style="{StaticResource TableCellStyle}" />
+                        </Grid>
+                        <BoxView HeightRequest="1" BackgroundColor="{StaticResource BorderColor}" />
+                    </VerticalStackLayout>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+    </Grid>
+</ContentPage>

@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="ShareCar.Admin.App.Views.StatisticsPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:viewmodels="clr-namespace:ShareCar.Admin.App.ViewModels"
+    x:DataType="viewmodels:StatisticsViewModel"
+    Title="STATISTICS"
+    BackgroundColor="{StaticResource PageBackground}">
+
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="REFRESH" Command="{Binding LoadCommand}" />
+    </ContentPage.ToolbarItems>
+
+    <ScrollView>
+        <VerticalStackLayout Spacing="0" Padding="16">
+
+            <!-- Messages -->
+            <Label IsVisible="{Binding HasError}" Text="{Binding ErrorMessage}" Style="{StaticResource ErrorBannerStyle}" Margin="0,0,0,12" />
+
+            <!-- Overview section title -->
+            <Label Text="SYSTEM OVERVIEW" FontFamily="Courier New" FontSize="11" FontAttributes="Bold" TextColor="{StaticResource Accent}" Margin="0,0,0,12" />
+
+            <!-- Overview cards -->
+            <FlexLayout Wrap="Wrap" JustifyContent="Start">
+                <Border Style="{StaticResource StatCardStyle}">
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="USERS" FontFamily="Courier New" FontSize="11" TextColor="{StaticResource TextMuted}" />
+                        <Label Text="{Binding TotalUsers}" FontFamily="Courier New" FontSize="24" FontAttributes="Bold" TextColor="{StaticResource TextPrimary}" />
+                    </VerticalStackLayout>
+                </Border>
+                <Border Style="{StaticResource StatCardStyle}">
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="VEHICLES" FontFamily="Courier New" FontSize="11" TextColor="{StaticResource TextMuted}" />
+                        <Label Text="{Binding TotalVehicles}" FontFamily="Courier New" FontSize="24" FontAttributes="Bold" TextColor="{StaticResource TextPrimary}" />
+                    </VerticalStackLayout>
+                </Border>
+                <Border Style="{StaticResource StatCardStyle}">
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="PARKING LOTS" FontFamily="Courier New" FontSize="11" TextColor="{StaticResource TextMuted}" />
+                        <Label Text="{Binding TotalParkingLots}" FontFamily="Courier New" FontSize="24" FontAttributes="Bold" TextColor="{StaticResource TextPrimary}" />
+                    </VerticalStackLayout>
+                </Border>
+                <Border Style="{StaticResource StatCardStyle}">
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="ACTIVE BOOKINGS" FontFamily="Courier New" FontSize="11" TextColor="{StaticResource TextMuted}" />
+                        <Label Text="{Binding ActiveBookings}" FontFamily="Courier New" FontSize="24" FontAttributes="Bold" TextColor="{StaticResource Accent}" />
+                    </VerticalStackLayout>
+                </Border>
+                <Border Style="{StaticResource StatCardStyle}">
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="TOTAL BOOKINGS" FontFamily="Courier New" FontSize="11" TextColor="{StaticResource TextMuted}" />
+                        <Label Text="{Binding TotalBookings}" FontFamily="Courier New" FontSize="24" FontAttributes="Bold" TextColor="{StaticResource TextPrimary}" />
+                    </VerticalStackLayout>
+                </Border>
+            </FlexLayout>
+
+            <!-- Vehicle stats section -->
+            <BoxView HeightRequest="1" BackgroundColor="{StaticResource BorderColor}" Margin="0,20,0,16" />
+            <Label Text="VEHICLE STATISTICS (LAST MONTH)" FontFamily="Courier New" FontSize="11" FontAttributes="Bold" TextColor="{StaticResource Accent}" Margin="0,0,0,12" />
+
+            <Grid ColumnDefinitions="Auto,120,Auto,Auto,*" ColumnSpacing="8">
+                <Label Grid.Column="0" Text="VEHICLE ID:" FontFamily="Courier New" FontSize="11" TextColor="{StaticResource TextMuted}" VerticalOptions="Center" />
+                <Entry Grid.Column="1" Text="{Binding VehicleIdInput}" Keyboard="Numeric" />
+                <Button Grid.Column="2" Text="LOAD" Command="{Binding LoadVehicleStatsCommand}" Style="{StaticResource PrimaryButtonStyle}" />
+                <Label Grid.Column="3" IsVisible="{Binding HasVehicleIdError}" Text="{Binding VehicleIdError}" Style="{StaticResource FieldErrorLabelStyle}" VerticalOptions="Center" />
+                <ActivityIndicator Grid.Column="4" IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" Color="{StaticResource Accent}" VerticalOptions="Center" HorizontalOptions="Start" />
+            </Grid>
+
+            <!-- Vehicle stats result -->
+            <FlexLayout Wrap="Wrap" JustifyContent="Start" IsVisible="{Binding HasVehicleStats}" Margin="0,12,0,0">
+                <Border Style="{StaticResource StatCardStyle}">
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="TRIPS" FontFamily="Courier New" FontSize="11" TextColor="{StaticResource TextMuted}" />
+                        <Label Text="{Binding VehicleTrips}" FontFamily="Courier New" FontSize="24" FontAttributes="Bold" TextColor="{StaticResource TextPrimary}" />
+                    </VerticalStackLayout>
+                </Border>
+                <Border Style="{StaticResource StatCardStyle}">
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="DISTANCE (KM)" FontFamily="Courier New" FontSize="11" TextColor="{StaticResource TextMuted}" />
+                        <Label Text="{Binding VehicleDistanceKm}" FontFamily="Courier New" FontSize="24" FontAttributes="Bold" TextColor="{StaticResource TextPrimary}" />
+                    </VerticalStackLayout>
+                </Border>
+            </FlexLayout>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

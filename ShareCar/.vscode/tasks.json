@@ -42,6 +42,66 @@
       "problemMatcher": "$msCompile"
     },
     {
+      "label": "build-admin",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "build",
+        "${workspaceFolder}/src/ShareCar.Admin.App/ShareCar.Admin.App.csproj",
+        "/property:GenerateFullPaths=true",
+        "/consoleloggerparameters:NoSummary;ForceNoAlign"
+      ],
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "watch-admin",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "watch",
+        "--project",
+        "${workspaceFolder}/src/ShareCar.Admin.App/ShareCar.Admin.App.csproj",
+        "run",
+        "--no-hot-reload"
+      ],
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "custom",
+        "pattern": {
+          "regexp": "^$"
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^.*dotnet watch.*",
+          "endsPattern": "^.*Application started.*$"
+        }
+      }
+    },
+    {
+      "label": "watch-webclient",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "watch",
+        "--project",
+        "${workspaceFolder}/src/ShareCar.WebClient.App/ShareCar.WebClient.App.csproj",
+        "run",
+        "--no-hot-reload"
+      ],
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "custom",
+        "pattern": {
+          "regexp": "^$"
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^.*dotnet watch.*",
+          "endsPattern": "^.*Application started.*$"
+        }
+      }
+    },
+    {
       "label": "clean",
       "command": "dotnet",
       "type": "process",

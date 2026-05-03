@@ -2,9 +2,9 @@ using ShareCar.Admin.App.ViewModels;
 
 namespace ShareCar.Admin.App.Views;
 
-public partial class UsersPage : ContentPage
+public partial class VehiclesPage : ContentPage
 {
-  public UsersPage(UsersViewModel viewModel)
+  public VehiclesPage(VehiclesViewModel viewModel)
   {
     InitializeComponent();
     BindingContext = viewModel;
@@ -13,7 +13,7 @@ public partial class UsersPage : ContentPage
   protected override void OnAppearing()
   {
     base.OnAppearing();
-    if (BindingContext is UsersViewModel vm && !vm.IsBusy)
+    if (BindingContext is VehiclesViewModel vm && !vm.IsBusy)
     {
       vm.LoadCommand.Execute(null);
     }

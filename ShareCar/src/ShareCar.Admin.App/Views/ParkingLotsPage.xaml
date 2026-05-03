@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="ShareCar.Admin.App.Views.ParkingLotsPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:models="clr-namespace:ShareCar.Admin.App.Models"
+    xmlns:viewmodels="clr-namespace:ShareCar.Admin.App.ViewModels"
+    x:DataType="viewmodels:ParkingLotsViewModel"
+    Title="PARKING LOTS"
+    BackgroundColor="{StaticResource PageBackground}">
+
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="+ NEW" Command="{Binding ToggleCreatePanelCommand}" />
+        <ToolbarItem Text="REFRESH" Command="{Binding LoadCommand}" />
+    </ContentPage.ToolbarItems>
+
+    <Grid RowDefinitions="Auto,Auto,Auto,*,Auto">
+
+        <!-- Messages -->
+        <Label Grid.Row="0" IsVisible="{Binding HasError}" Text="{Binding ErrorMessage}" Style="{StaticResource ErrorBannerStyle}" />
+        <Label Grid.Row="0" IsVisible="{Binding HasSuccess}" Text="{Binding SuccessMessage}" Style="{StaticResource SuccessBannerStyle}" />
+
+        <!-- Sort bar -->
+        <Grid
+            Grid.Row="1"
+            BackgroundColor="{StaticResource SurfaceColor}"
+            ColumnDefinitions="Auto,Auto,Auto,Auto,*,Auto"
+            Padding="16,10"
+            ColumnSpacing="8">
+            <Label Grid.Column="0" Text="SORT:" FontFamily="Courier New" FontSize="11" TextColor="{StaticResource TextMuted}" VerticalOptions="Center" />
+            <Button Grid.Column="1" Text="NAME" Command="{Binding SortCommand}" CommandParameter="Name" Style="{StaticResource SortButtonStyle}" />
+            <Button Grid.Column="2" Text="CAPACITY" Command="{Binding SortCommand}" CommandParameter="Capacity" Style="{StaticResource SortButtonStyle}" />
+            <Button Grid.Column="3" Text="AVAILABLE" Command="{Binding SortCommand}" CommandParameter="Available" Style="{StaticResource SortButtonStyle}" />
+            <ActivityIndicator Grid.Column="5" IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" Color="{StaticResource Accent}" VerticalOptions="Center" />
+        </Grid>
+
+        <!-- Table header -->
+        <Grid
+            Grid.Row="2"
+            BackgroundColor="{StaticResource HeaderBg}"
+            ColumnDefinitions="50,160,90,90,90,80"
+            Padding="16,8">
+            <Label Grid.Column="0" Text="ID" Style="{StaticResource TableHeaderLabelStyle}" />
+            <Label Grid.Column="1" Text="NAME" Style="{StaticResource TableHeaderLabelStyle}" />
+            <Label Grid.Column="2" Text="LAT" Style="{StaticResource TableHeaderLabelStyle}" />
+            <Label Grid.Column="3" Text="LON" Style="{StaticResource TableHeaderLabelStyle}" />
+            <Label Grid.Column="4" Text="CAP" Style="{StaticResource TableHeaderLabelStyle}" />
+            <Label Grid.Column="5" Text="" Style="{StaticResource TableHeaderLabelStyle}" />
+        </Grid>
+
+        <!-- List -->
+        <CollectionView
+            Grid.Row="3"
+            ItemsSource="{Binding ParkingLots}"
+            SelectionMode="Single"
+            SelectedItem="{Binding SelectedLot}">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:ParkingLotItem">
+                    <VerticalStackLayout Spacing="0">
+                        <Grid
+                            ColumnDefinitions="50,160,90,90,90,80"
+                            Padding="16,10"
+                            BackgroundColor="{StaticResource SurfaceColor}">
+                            <Label Grid.Column="0" Text="{Binding Id}" Style="{StaticResource TableCellMutedStyle}" />
+                            <Label Grid.Column="1" Text="{Binding Name}" Style="{StaticResource TableCellStyle}" />
+                            <Label Grid.Column="2" Text="{Binding Latitude, StringFormat='{0:F4}'}" Style="{StaticResource TableCellMutedStyle}" />
+                            <Label Grid.Column="3" Text="{Binding Longitude, StringFormat='{0:F4}'}" Style="{StaticResource TableCellMutedStyle}" />
+                            <Label Grid.Column="4" Text="{Binding TotalCapacity}" Style="{StaticResource TableCellStyle}" />
+                            <Button
+                                Grid.Column="5"
+                                Text="DELETE"
+                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:ParkingLotsViewModel}}, Path=DeleteCommand}"
+                                CommandParameter="{Binding .}"
+                                Style="{StaticResource DangerButtonStyle}" />
+                        </Grid>
+                        <BoxView HeightRequest="1" BackgroundColor="{StaticResource BorderColor}" />
+                    </VerticalStackLayout>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <!-- Edit / Create panel -->
+        <ScrollView Grid.Row="4">
+            <VerticalStackLayout Spacing="0">
+
+                <!-- Create panel -->
+                <Border
+                    IsVisible="{Binding ShowCreatePanel}"
+                    BackgroundColor="{StaticResource SurfaceColor}"
+                    Stroke="{StaticResource BorderColor}"
+                    StrokeThickness="1"
+                    StrokeShape="Rectangle"
+                    Padding="16,14">
+                    <Grid RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="0">
+                        <BoxView Grid.Row="0" HeightRequest="3" BackgroundColor="{StaticResource SuccessColor}" Margin="0,0,0,12" />
+                        <Label Grid.Row="1" Text="CREATE PARKING LOT" FontFamily="Courier New" FontSize="11" FontAttributes="Bold" TextColor="{StaticResource SuccessColor}" Margin="0,0,0,10" />
+                        <Grid Grid.Row="2" ColumnDefinitions="80,200,50,80,50,80,80,80" ColumnSpacing="8">
+                            <Label Grid.Column="0" Text="Name:" FontFamily="Courier New" FontSize="13" TextColor="{StaticResource TextMuted}" VerticalOptions="Center" />
+                            <Entry Grid.Column="1" Text="{Binding NewName}" />
+                            <Label Grid.Column="2" Text="Lat:" FontFamily="Courier New" FontSize="13" TextColor="{StaticResource TextMuted}" VerticalOptions="Center" />
+                            <Entry Grid.Column="3" Text="{Binding NewLatitude}" Keyboard="Numeric" />
+                            <Label Grid.Column="4" Text="Lon:" FontFamily="Courier New" FontSize="13" TextColor="{StaticResource TextMuted}" VerticalOptions="Center" />
+                            <Entry Grid.Column="5" Text="{Binding NewLongitude}" Keyboard="Numeric" />
+                            <Label Grid.Column="6" Text="Cap:" FontFamily="Courier New" FontSize="13" TextColor="{StaticResource TextMuted}" VerticalOptions="Center" />
+                            <Entry Grid.Column="7" Text="{Binding NewCapacity}" Keyboard="Numeric" />
+                        </Grid>
+                        <VerticalStackLayout Grid.Row="3" Margin="0,6,0,0" Spacing="2">
+                            <Label IsVisible="{Binding HasNewNameError}" Text="{Binding NewNameError}" Style="{StaticResource FieldErrorLabelStyle}" />
+                            <Label IsVisible="{Binding HasNewLatitudeError}" Text="{Binding NewLatitudeError}" Style="{StaticResource FieldErrorLabelStyle}" />
+                            <Label IsVisible="{Binding HasNewLongitudeError}" Text="{Binding NewLongitudeError}" Style="{StaticResource FieldErrorLabelStyle}" />
+                            <Label IsVisible="{Binding HasNewCapacityError}" Text="{Binding NewCapacityError}" Style="{StaticResource FieldErrorLabelStyle}" />
+                            <HorizontalStackLayout HorizontalOptions="End" Spacing="8" Margin="0,8,0,0">
+                                <Button Text="CANCEL" Command="{Binding ClearSelectionCommand}" Style="{StaticResource SecondaryButtonStyle}" />
+                                <Button Text="CREATE" Command="{Binding CreateCommand}" Style="{StaticResource PrimaryButtonStyle}" />
+                            </HorizontalStackLayout>
+                        </VerticalStackLayout>
+                    </Grid>
+                </Border>
+
+                <!-- Edit panel -->
+                <Border
+                    IsVisible="{Binding HasSelection}"
+                    BackgroundColor="{StaticResource SurfaceColor}"
+                    Stroke="{StaticResource BorderColor}"
+                    StrokeThickness="1"
+                    StrokeShape="Rectangle"
+                    Padding="16,14">
+                    <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto" RowSpacing="0">
+                        <BoxView Grid.Row="0" HeightRequest="3" BackgroundColor="{StaticResource Accent}" Margin="0,0,0,12" />
+                        <Label Grid.Row="1" Text="EDIT PARKING LOT" FontFamily="Courier New" FontSize="11" FontAttributes="Bold" TextColor="{StaticResource Accent}" Margin="0,0,0,10" />
+                        <Grid Grid.Row="2" ColumnDefinitions="80,200,50,80,50,80,80,80" ColumnSpacing="8">
+                            <Label Grid.Column="0" Text="Name:" FontFamily="Courier New" FontSize="13" TextColor="{StaticResource TextMuted}" VerticalOptions="Center" />
+                            <Entry Grid.Column="1" Text="{Binding EditName}" />
+                            <Label Grid.Column="2" Text="Lat:" FontFamily="Courier New" FontSize="13" TextColor="{StaticResource TextMuted}" VerticalOptions="Center" />
+                            <Entry Grid.Column="3" Text="{Binding EditLatitude}" Keyboard="Numeric" />
+                            <Label Grid.Column="4" Text="Lon:" FontFamily="Courier New" FontSize="13" TextColor="{StaticResource TextMuted}" VerticalOptions="Center" />
+                            <Entry Grid.Column="5" Text="{Binding EditLongitude}" Keyboard="Numeric" />
+                            <Label Grid.Column="6" Text="Cap:" FontFamily="Courier New" FontSize="13" TextColor="{StaticResource TextMuted}" VerticalOptions="Center" />
+                            <Entry Grid.Column="7" Text="{Binding EditCapacity}" Keyboard="Numeric" />
+                        </Grid>
+                        <VerticalStackLayout Grid.Row="3" Margin="0,4,0,0" Spacing="2">
+                            <Label IsVisible="{Binding HasEditNameError}" Text="{Binding EditNameError}" Style="{StaticResource FieldErrorLabelStyle}" />
+                            <Label IsVisible="{Binding HasEditLatitudeError}" Text="{Binding EditLatitudeError}" Style="{StaticResource FieldErrorLabelStyle}" />
+                            <Label IsVisible="{Binding HasEditLongitudeError}" Text="{Binding EditLongitudeError}" Style="{StaticResource FieldErrorLabelStyle}" />
+                            <Label IsVisible="{Binding HasEditCapacityError}" Text="{Binding EditCapacityError}" Style="{StaticResource FieldErrorLabelStyle}" />
+                        </VerticalStackLayout>
+                        <HorizontalStackLayout Grid.Row="4" HorizontalOptions="End" Spacing="8" Margin="0,10,0,0">
+                            <Button Text="CANCEL" Command="{Binding ClearSelectionCommand}" Style="{StaticResource SecondaryButtonStyle}" />
+                            <Button Text="SAVE CHANGES" Command="{Binding SaveCommand}" Style="{StaticResource PrimaryButtonStyle}" />
+                        </HorizontalStackLayout>
+                    </Grid>
+                </Border>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+    </Grid>
+</ContentPage>

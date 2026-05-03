@@ -25,13 +25,12 @@
 - [x] **Non-trivial forms (2 required)** — current forms are login/register (text only) and rent/return (number + datetime). Add at least one form with a dropdown/select, checkbox, or textarea (e.g. block-vehicle reason with multiline text + dropdown for block type, or a vehicle-creation form for admin)
 - [x] **Grid sorting at DB level** — booking history and vehicle list should pass `ORDER BY` to the query; add sort parameters to repository methods and API endpoints
 - [x] **Full CRUD grid actions** — profile ride-history grid currently only displays; add a detail view per ride (distance, duration, price breakdown)
-
-- [ ] **ApiDiscoveryController completeness** — extend reflected output to include request body schema, response shape, and query/route parameter descriptions to match OpenAPI spirit
-- [ ] **Admin API — Vehicles full CRUD** — `POST /api/vehicles` (create), `PUT /api/vehicles/{id}` (update model/plate/odometer), `DELETE /api/vehicles/{id}`
-- [ ] **Admin API — Parking lots full CRUD** — `POST /api/parkinglots`, `PUT /api/parkinglots/{id}`, `DELETE /api/parkinglots/{id}`
-- [ ] **Admin API — Users management** — `PUT /api/users/{id}` (update role/email), `DELETE /api/users/{id}`
-- [ ] **Admin API — All bookings list** — `GET /api/bookings` (admin sees all users' bookings) with pagination/sorting
-- [ ] **Admin API — Block log history** — `GET /api/vehicles/{id}/blocks` returning full block log history for a vehicle
+- [x] **ApiDiscoveryController completeness** — extend reflected output to include request body schema, response shape, and query/route parameter descriptions to match OpenAPI spirit
+- [x] **Admin API — Vehicles full CRUD** — `POST /api/vehicles` (create), `PUT /api/vehicles/{id}` (update model/plate/odometer), `DELETE /api/vehicles/{id}`
+- [x] **Admin API — Parking lots full CRUD** — `POST /api/parkinglots`, `PUT /api/parkinglots/{id}`, `DELETE /api/parkinglots/{id}`
+- [x] **Admin API — Users management** — `PUT /api/users/{id}` (update role/email), `DELETE /api/users/{id}`
+- [x] **Admin API — All bookings list** — `GET /api/bookings` (admin sees all users' bookings) with pagination/sorting
+- [x] **Admin API — Block log history** — `GET /api/vehicles/{id}/blocks` returning full block log history for a vehicle
 
 ---
 
@@ -39,10 +38,10 @@
 
 ### ⬜ TODO — entire desktop app not yet started
 
-- [ ] **Project scaffold** — create WPF or MAUI project, add to solution
-- [ ] **API client service** — typed `HttpClient` with JWT token attachment; all calls async
-- [ ] **Admin token acquisition** — hardcoded admin credentials or config-based login to obtain JWT on startup
-- [ ] **Users grid** — list all users, sortable; actions: edit role/email, delete
+- [x] **Project scaffold** — create WPF or MAUI project, add to solution
+- [x] **API client service** — typed `HttpClient` with JWT token attachment; all calls async
+- [x] **Admin token acquisition** — hardcoded admin credentials or config-based login to obtain JWT on startup
+- [x] **Users grid** — list all users, sortable; actions: edit role/email, delete
 - [ ] **Vehicles grid** — list all vehicles with status; create, edit, delete; block/unblock with reason
 - [ ] **Parking lots grid** — list lots with GPS; create, edit, delete
 - [ ] **Bookings grid** — all bookings across users; read-only for completed

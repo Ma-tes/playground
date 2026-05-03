@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="ShareCar.Admin.App.Views.VehiclesPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:models="clr-namespace:ShareCar.Admin.App.Models"
+    xmlns:viewmodels="clr-namespace:ShareCar.Admin.App.ViewModels"
+    x:DataType="viewmodels:VehiclesViewModel"
+    Title="VEHICLES"
+    BackgroundColor="{StaticResource PageBackground}">
+
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="+ NEW" Command="{Binding ToggleCreatePanelCommand}" />
+        <ToolbarItem Text="REFRESH" Command="{Binding LoadCommand}" />
+    </ContentPage.ToolbarItems>
+
+    <Grid RowDefinitions="Auto,Auto,Auto,*,Auto">
+
+        <!-- Messages -->
+        <Label
+            Grid.Row="0"
+            IsVisible="{Binding HasError}"
+            Text="{Binding ErrorMessage}"
+            Style="{StaticResource ErrorBannerStyle}" />
+        <Label
+            Grid.Row="0"
+            IsVisible="{Binding HasSuccess}"
+            Text="{Binding SuccessMessage}"
+            Style="{StaticResource SuccessBannerStyle}" />
+
+        <!-- Sort bar -->
+        <Grid
+            Grid.Row="1"
+            BackgroundColor="{StaticResource SurfaceColor}"
+            ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,*,Auto"
+            Padding="16,10"
+            ColumnSpacing="8">
+            <Label
+                Grid.Column="0"
+                Text="SORT:"
+                FontFamily="Courier New"
+                FontSize="11"
+                TextColor="{StaticResource TextMuted}"
+                VerticalOptions="Center" />
+            <Button
+                Grid.Column="1"
+                Text="MODEL"
+                Command="{Binding SortCommand}"
+                CommandParameter="Model"
+                Style="{StaticResource SortButtonStyle}" />
+            <Button
+                Grid.Column="2"
+                Text="PLATE"
+                Command="{Binding SortCommand}"
+                CommandParameter="Plate"
+                Style="{StaticResource SortButtonStyle}" />
+            <Button
+                Grid.Column="3"
+                Text="STATUS"
+                Command="{Binding SortCommand}"
+                CommandParameter="Status"
+                Style="{StaticResource SortButtonStyle}" />
+            <Button
+                Grid.Column="4"
+                Text="ODOMETER"
+                Command="{Binding SortCommand}"
+                CommandParameter="Odometer"
+                Style="{StaticResource SortButtonStyle}" />
+            <ActivityIndicator
+                Grid.Column="6"
+                IsRunning="{Binding IsBusy}"
+                IsVisible="{Binding IsBusy}"
+                Color="{StaticResource Accent}"
+                VerticalOptions="Center" />
+        </Grid>
+
+        <!-- Table header -->
+        <Grid
+            Grid.Row="2"
+            BackgroundColor="{StaticResource HeaderBg}"
+            ColumnDefinitions="50,150,100,90,90,80"
+            Padding="16,8">
+            <Label Grid.Column="0" Text="ID" Style="{StaticResource TableHeaderLabelStyle}" />
+            <Label Grid.Column="1" Text="MODEL" Style="{StaticResource TableHeaderLabelStyle}" />
+            <Label Grid.Column="2" Text="PLATE" Style="{StaticResource TableHeaderLabelStyle}" />
+            <Label Grid.Column="3" Text="STATUS" Style="{StaticResource TableHeaderLabelStyle}" />
+            <Label Grid.Column="4" Text="ODO" Style="{StaticResource TableHeaderLabelStyle}" />
+            <Label Grid.Column="5" Text="" Style="{StaticResource TableHeaderLabelStyle}" />
+        </Grid>
+
+        <!-- Vehicle list -->
+        <CollectionView
+            Grid.Row="3"
+            ItemsSource="{Binding Vehicles}"
+            SelectionMode="Single"
+            SelectedItem="{Binding SelectedVehicle}">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:VehicleItem">
+                    <VerticalStackLayout Spacing="0">
+                        <Grid
+                            ColumnDefinitions="50,150,100,90,90,80"
+                            Padding="16,10"
+                            BackgroundColor="{StaticResource SurfaceColor}">
+                            <Label
+                                Grid.Column="0"
+                                Text="{Binding Id}"
+                                Style="{StaticResource TableCellMutedStyle}" />
+                            <Label
+                                Grid.Column="1"
+                                Text="{Binding Model}"
+                                Style="{StaticResource TableCellStyle}" />
+                            <Label
+                                Grid.Column="2"
+                                Text="{Binding PlateNumber}"
+                                Style="{StaticResource TableCellStyle}" />
+                            <Label
+                                Grid.Column="3"
+                                Text="{Binding Status}"
+                                Style="{StaticResource TableCellStyle}" />
+                            <Label
+                                Grid.Column="4"
+                                Text="{Binding Odometer}"
+                                Style="{StaticResource TableCellMutedStyle}" />
+                            <Button
+                                Grid.Column="5"
+                                Text="DELETE"
+                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:VehiclesViewModel}}, Path=DeleteCommand}"
+                                CommandParameter="{Binding .}"
+                                Style="{StaticResource DangerButtonStyle}" />
+                        </Grid>
+                        <BoxView HeightRequest="1" BackgroundColor="{StaticResource BorderColor}" />
+                    </VerticalStackLayout>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <!-- Edit / Create / Block panel -->
+        <ScrollView Grid.Row="4">
+            <VerticalStackLayout Spacing="0">
+
+                <!-- Create panel -->
+                <Border
+                    IsVisible="{Binding ShowCreatePanel}"
+                    BackgroundColor="{StaticResource SurfaceColor}"
+                    Stroke="{StaticResource BorderColor}"
+                    StrokeThickness="1"
+                    StrokeShape="Rectangle"
+                    Padding="16,14">
+                    <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto" RowSpacing="0">
+                        <BoxView Grid.Row="0" HeightRequest="3" BackgroundColor="{StaticResource SuccessColor}" Margin="0,0,0,12" />
+                        <Label
+                            Grid.Row="1"
+                            Text="CREATE VEHICLE"
+                            FontFamily="Courier New"
+                            FontSize="11"
+                            FontAttributes="Bold"
+                            TextColor="{StaticResource SuccessColor}"
+                            Margin="0,0,0,10" />
+                        <Grid
+                            Grid.Row="2"
+                            ColumnDefinitions="80,200,80,120,80,100"
+                            ColumnSpacing="8">
+                            <Label Grid.Column="0" Text="Model:" FontFamily="Courier New" FontSize="13" TextColor="{StaticResource TextMuted}" VerticalOptions="Center" />
+                            <Entry Grid.Column="1" Text="{Binding NewModel}" />
+                            <Label Grid.Column="2" Text="Plate:" FontFamily="Courier New" FontSize="13" TextColor="{StaticResource TextMuted}" VerticalOptions="Center" />
+                            <Entry Grid.Column="3" Text="{Binding NewPlate}" />
+                            <Label Grid.Column="4" Text="Odo:" FontFamily="Courier New" FontSize="13" TextColor="{StaticResource TextMuted}" VerticalOptions="Center" />
+                            <Entry Grid.Column="5" Text="{Binding NewOdometer}" Keyboard="Numeric" />
+                        </Grid>
+                        <Grid Grid.Row="3" ColumnDefinitions="80,200" ColumnSpacing="8" Margin="0,8,0,0">
+                            <Label Grid.Column="0" Text="Lot:" FontFamily="Courier New" FontSize="13" TextColor="{StaticResource TextMuted}" VerticalOptions="Center" />
+                            <Picker Grid.Column="1" ItemsSource="{Binding ParkingLots}" SelectedItem="{Binding SelectedNewLot}" ItemDisplayBinding="{Binding Name}" />
+                        </Grid>
+                        <!-- Validation errors -->
+                        <VerticalStackLayout Grid.Row="4" Margin="0,6,0,0" Spacing="2">
+                            <Label IsVisible="{Binding HasNewModelError}" Text="{Binding NewModelError}" Style="{StaticResource FieldErrorLabelStyle}" />
+                            <Label IsVisible="{Binding HasNewPlateError}" Text="{Binding NewPlateError}" Style="{StaticResource FieldErrorLabelStyle}" />
+                            <Label IsVisible="{Binding HasNewOdometerError}" Text="{Binding NewOdometerError}" Style="{StaticResource FieldErrorLabelStyle}" />
+                            <HorizontalStackLayout HorizontalOptions="End" Spacing="8" Margin="0,8,0,0">
+                                <Button Text="CANCEL" Command="{Binding ClearSelectionCommand}" Style="{StaticResource SecondaryButtonStyle}" />
+                                <Button Text="CREATE" Command="{Binding CreateCommand}" Style="{StaticResource PrimaryButtonStyle}" />
+                            </HorizontalStackLayout>
+                        </VerticalStackLayout>
+                    </Grid>
+                </Border>
+
+                <!-- Edit panel -->
+                <Border
+                    IsVisible="{Binding HasSelection}"
+                    BackgroundColor="{StaticResource SurfaceColor}"
+                    Stroke="{StaticResource BorderColor}"
+                    StrokeThickness="1"
+                    StrokeShape="Rectangle"
+                    Padding="16,14">
+                    <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="0">
+                        <BoxView Grid.Row="0" HeightRequest="3" BackgroundColor="{StaticResource Accent}" Margin="0,0,0,12" />
+
+                        <!-- Status display -->
+                        <HorizontalStackLayout Grid.Row="1" Spacing="12" Margin="0,0,0,10">
+                            <Label Text="EDIT VEHICLE" FontFamily="Courier New" FontSize="11" FontAttributes="Bold" TextColor="{StaticResource Accent}" VerticalOptions="Center" />
+                            <Label Text="{Binding CurrentStatusLabel, StringFormat='STATUS: {0}'}" FontFamily="Courier New" FontSize="11" TextColor="{StaticResource TextMuted}" VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+
+                        <!-- Fields -->
+                        <Grid
+                            Grid.Row="2"
+                            ColumnDefinitions="80,200,80,120,80,100"
+                            ColumnSpacing="8">
+                            <Label Grid.Column="0" Text="Model:" FontFamily="Courier New" FontSize="13" TextColor="{StaticResource TextMuted}" VerticalOptions="Center" />
+                            <Entry Grid.Column="1" Text="{Binding EditModel}" />
+                            <Label Grid.Column="2" Text="Plate:" FontFamily="Courier New" FontSize="13" TextColor="{StaticResource TextMuted}" VerticalOptions="Center" />
+                            <Entry Grid.Column="3" Text="{Binding EditPlate}" />
+                            <Label Grid.Column="4" Text="Odo:" FontFamily="Courier New" FontSize="13" TextColor="{StaticResource TextMuted}" VerticalOptions="Center" />
+                            <Entry Grid.Column="5" Text="{Binding EditOdometer}" Keyboard="Numeric" />
+                        </Grid>
+                        <Grid Grid.Row="3" ColumnDefinitions="80,200" ColumnSpacing="8" Margin="0,8,0,0">
+                            <Label Grid.Column="0" Text="Lot:" FontFamily="Courier New" FontSize="13" TextColor="{StaticResource TextMuted}" VerticalOptions="Center" />
+                            <Picker Grid.Column="1" ItemsSource="{Binding ParkingLots}" SelectedItem="{Binding SelectedEditLot}" ItemDisplayBinding="{Binding Name}" />
+                        </Grid>
+
+                        <!-- Edit validation errors -->
+                        <VerticalStackLayout Grid.Row="4" Margin="0,4,0,0" Spacing="2">
+                            <Label IsVisible="{Binding HasEditModelError}" Text="{Binding EditModelError}" Style="{StaticResource FieldErrorLabelStyle}" />
+                            <Label IsVisible="{Binding HasEditPlateError}" Text="{Binding EditPlateError}" Style="{StaticResource FieldErrorLabelStyle}" />
+                            <Label IsVisible="{Binding HasEditOdometerError}" Text="{Binding EditOdometerError}" Style="{StaticResource FieldErrorLabelStyle}" />
+                        </VerticalStackLayout>
+
+                        <!-- Save/Cancel -->
+                        <HorizontalStackLayout Grid.Row="5" HorizontalOptions="End" Spacing="8" Margin="0,10,0,0">
+                            <Button Text="CANCEL" Command="{Binding ClearSelectionCommand}" Style="{StaticResource SecondaryButtonStyle}" />
+                            <Button Text="SAVE CHANGES" Command="{Binding SaveCommand}" Style="{StaticResource PrimaryButtonStyle}" />
+                        </HorizontalStackLayout>
+
+                        <!-- Block/Unblock section -->
+                        <BoxView Grid.Row="6" HeightRequest="1" BackgroundColor="{StaticResource BorderColor}" Margin="0,14,0,10" />
+                        <Grid Grid.Row="7" ColumnDefinitions="80,250,Auto,Auto" ColumnSpacing="8">
+                            <Label Grid.Column="0" Text="Reason:" FontFamily="Courier New" FontSize="13" TextColor="{StaticResource TextMuted}" VerticalOptions="Center" IsVisible="{Binding CanBlock}" />
+                            <Entry Grid.Column="1" Text="{Binding BlockReason}" Placeholder="Block reason..." IsVisible="{Binding CanBlock}" />
+                            <Button
+                                Grid.Column="2"
+                                Text="BLOCK"
+                                Command="{Binding BlockCommand}"
+                                IsVisible="{Binding CanBlock}"
+                                Style="{StaticResource WarnButtonStyle}" />
+                            <Button
+                                Grid.Column="2"
+                                Text="UNBLOCK"
+                                Command="{Binding UnblockCommand}"
+                                IsVisible="{Binding CanUnblock}"
+                                Style="{StaticResource AccentButtonStyle}" />
+                            <Label Grid.Column="3" IsVisible="{Binding HasBlockReasonError}" Text="{Binding BlockReasonError}" Style="{StaticResource FieldErrorLabelStyle}" VerticalOptions="Center" />
+                        </Grid>
+                    </Grid>
+                </Border>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+    </Grid>
+</ContentPage>

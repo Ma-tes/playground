@@ -15,12 +15,14 @@ public sealed class VehiclesController : ControllerBase
   private readonly IShareCarService _shareCarService;
   private readonly IVehicleRepository _vehicleRepository;
   private readonly IBlockLogRepository _blockLogRepository;
+  private readonly IStatusHistoryRepository _statusHistoryRepository;
 
-  public VehiclesController(IShareCarService shareCarService, IVehicleRepository vehicleRepository, IBlockLogRepository blockLogRepository)
+  public VehiclesController(IShareCarService shareCarService, IVehicleRepository vehicleRepository, IBlockLogRepository blockLogRepository, IStatusHistoryRepository statusHistoryRepository)
   {
     _shareCarService = shareCarService ?? throw new ArgumentNullException(nameof(shareCarService));
     _vehicleRepository = vehicleRepository ?? throw new ArgumentNullException(nameof(vehicleRepository));
     _blockLogRepository = blockLogRepository ?? throw new ArgumentNullException(nameof(blockLogRepository));
+    _statusHistoryRepository = statusHistoryRepository ?? throw new ArgumentNullException(nameof(statusHistoryRepository));
   }
 
   [HttpGet("by-parking-lot/{parkingLotId}")]
@@ -59,6 +61,23 @@ public sealed class VehiclesController : ControllerBase
       v.Odometer
     });
 
+    return Ok(result);
+  }
+
+  [Authorize(Roles = "Admin")]
+  [HttpGet("all")]
+  public async Task<IActionResult> GetAllAsync()
+  {
+    var vehicles = await _vehicleRepository.GetAllAsync();
+    var result = vehicles.Select(v => new
+    {
+      v.Id,
+      v.Model,
+      v.PlateNumber,
+      v.CurrentParkingLotId,
+      Status = v.Status.ToString(),
+      v.Odometer
+    });
     return Ok(result);
   }
 
@@ -181,6 +200,28 @@ public sealed class VehiclesController : ControllerBase
       l.StartTime,
       l.EndTime,
       IsActive = l.EndTime is null
+    });
+
+    return Ok(result);
+  }
+
+  [Authorize(Roles = "Admin")]
+  [HttpGet("{id}/status-history")]
+  public async Task<IActionResult> GetStatusHistoryAsync(int id)
+  {
+    var vehicle = await _vehicleRepository.GetByIdAsync(id);
+    if (vehicle is null) return NotFound();
+
+    var history = await _statusHistoryRepository.GetByVehicleIdAsync(id);
+
+    var result = history.OrderByDescending(h => h.ChangedAt).Select(h => new
+    {
+      h.Id,
+      h.VehicleId,
+      OldStatus = h.OldStatus.ToString(),
+      NewStatus = h.NewStatus.ToString(),
+      h.ChangedAt,
+      h.TriggeredBy
     });
 
     return Ok(result);

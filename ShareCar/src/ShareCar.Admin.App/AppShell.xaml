@@ -5,4 +5,34 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     FlyoutBehavior="Disabled"
     Title="SHARECAR.TERMINAL">
+
+    <Shell.TitleView>
+        <HorizontalStackLayout Spacing="8" VerticalOptions="Center" Padding="8,0">
+            <!-- Orange square icon matching WebClient logo -->
+            <BoxView
+                WidthRequest="12"
+                HeightRequest="12"
+                BackgroundColor="#D2691E"
+                VerticalOptions="Center" />
+            <!-- Title: "SHARECAR" bold + ".TERMINAL" muted, Courier Prime style -->
+            <HorizontalStackLayout Spacing="0" VerticalOptions="Center">
+                <Label
+                    Text="SHARECAR"
+                    FontFamily="Courier New"
+                    FontSize="14"
+                    FontAttributes="Bold"
+                    TextColor="White"
+                    CharacterSpacing="1.5"
+                    VerticalOptions="Center" />
+                <Label
+                    Text=".TERMINAL"
+                    FontFamily="Courier New"
+                    FontSize="14"
+                    TextColor="#B0A898"
+                    CharacterSpacing="1.5"
+                    VerticalOptions="Center" />
+            </HorizontalStackLayout>
+        </HorizontalStackLayout>
+    </Shell.TitleView>
+
 </Shell>

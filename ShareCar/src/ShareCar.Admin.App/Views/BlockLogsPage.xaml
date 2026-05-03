@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="ShareCar.Admin.App.Views.BlockLogsPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:models="clr-namespace:ShareCar.Admin.App.Models"
+    xmlns:viewmodels="clr-namespace:ShareCar.Admin.App.ViewModels"
+    x:DataType="viewmodels:BlockLogsViewModel"
+    Title="BLOCK LOGS"
+    BackgroundColor="{StaticResource PageBackground}">
+
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="REFRESH" Command="{Binding LoadBlockedVehiclesCommand}" />
+    </ContentPage.ToolbarItems>
+
+    <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,*">
+
+        <!-- Messages -->
+        <Label Grid.Row="0" IsVisible="{Binding HasError}" Text="{Binding ErrorMessage}" Style="{StaticResource ErrorBannerStyle}" />
+        <Label Grid.Row="0" IsVisible="{Binding HasSuccess}" Text="{Binding SuccessMessage}" Style="{StaticResource SuccessBannerStyle}" />
+
+        <!-- ═══ BLOCKED VEHICLES SECTION ═══ -->
+        <Label
+            Grid.Row="1"
+            Text="CURRENTLY BLOCKED VEHICLES"
+            FontFamily="Courier New"
+            FontSize="11"
+            FontAttributes="Bold"
+            TextColor="{StaticResource WarnColor}"
+            BackgroundColor="{StaticResource WarnBg}"
+            Padding="16,10" />
+
+        <!-- Blocked vehicles table header -->
+        <Grid
+            Grid.Row="2"
+            BackgroundColor="{StaticResource HeaderBg}"
+            ColumnDefinitions="50,150,100,90,90,90"
+            Padding="16,8">
+            <Label Grid.Column="0" Text="ID" Style="{StaticResource TableHeaderLabelStyle}" />
+            <Label Grid.Column="1" Text="MODEL" Style="{StaticResource TableHeaderLabelStyle}" />
+            <Label Grid.Column="2" Text="PLATE" Style="{StaticResource TableHeaderLabelStyle}" />
+            <Label Grid.Column="3" Text="STATUS" Style="{StaticResource TableHeaderLabelStyle}" />
+            <Label Grid.Column="4" Text="ODO" Style="{StaticResource TableHeaderLabelStyle}" />
+            <Label Grid.Column="5" Text="" Style="{StaticResource TableHeaderLabelStyle}" />
+        </Grid>
+
+        <!-- Blocked vehicles list -->
+        <CollectionView
+            Grid.Row="3"
+            ItemsSource="{Binding BlockedVehicles}"
+            SelectionMode="None"
+            MaximumHeightRequest="220">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:VehicleItem">
+                    <VerticalStackLayout Spacing="0">
+                        <Grid
+                            ColumnDefinitions="50,150,100,90,90,90"
+                            Padding="16,10"
+                            BackgroundColor="{StaticResource SurfaceColor}">
+                            <Label Grid.Column="0" Text="{Binding Id}" Style="{StaticResource TableCellMutedStyle}" />
+                            <Label Grid.Column="1" Text="{Binding Model}" Style="{StaticResource TableCellStyle}" />
+                            <Label Grid.Column="2" Text="{Binding PlateNumber}" Style="{StaticResource TableCellStyle}" />
+                            <Label Grid.Column="3" Text="{Binding Status}" Style="{StaticResource TableCellStyle}" TextColor="{StaticResource WarnColor}" />
+                            <Label Grid.Column="4" Text="{Binding Odometer}" Style="{StaticResource TableCellMutedStyle}" />
+                            <Button
+                                Grid.Column="5"
+                                Text="UNBLOCK"
+                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:BlockLogsViewModel}}, Path=UnblockCommand}"
+                                CommandParameter="{Binding .}"
+                                Style="{StaticResource AccentButtonStyle}"
+                                HeightRequest="28"
+                                FontSize="11"
+                                Padding="10,4" />
+                        </Grid>
+                        <BoxView HeightRequest="1" BackgroundColor="{StaticResource BorderColor}" />
+                    </VerticalStackLayout>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+            <CollectionView.EmptyView>
+                <Label Text="No blocked vehicles." FontFamily="Courier New" FontSize="13" TextColor="{StaticResource TextMuted}" Padding="16,12" />
+            </CollectionView.EmptyView>
+        </CollectionView>
+
+        <!-- ═══ BLOCK HISTORY SECTION ═══ -->
+        <BoxView Grid.Row="4" HeightRequest="1" BackgroundColor="{StaticResource BorderColor}" Margin="0,8,0,0" />
+
+        <!-- Vehicle ID input for history -->
+        <Grid
+            Grid.Row="5"
+            BackgroundColor="{StaticResource SurfaceColor}"
+            ColumnDefinitions="Auto,120,Auto,Auto,*,Auto"
+            Padding="16,10"
+            ColumnSpacing="8">
+            <Label Grid.Column="0" Text="BLOCK HISTORY — VEHICLE ID:" FontFamily="Courier New" FontSize="11" TextColor="{StaticResource TextMuted}" VerticalOptions="Center" />
+            <Entry Grid.Column="1" Text="{Binding VehicleIdInput}" Keyboard="Numeric" />
+            <Button Grid.Column="2" Text="LOAD" Command="{Binding LoadCommand}" Style="{StaticResource PrimaryButtonStyle}" />
+            <Label Grid.Column="3" IsVisible="{Binding HasVehicleIdError}" Text="{Binding VehicleIdError}" Style="{StaticResource FieldErrorLabelStyle}" VerticalOptions="Center" />
+            <ActivityIndicator Grid.Column="5" IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" Color="{StaticResource Accent}" VerticalOptions="Center" />
+        </Grid>
+
+        <!-- History table header -->
+        <Grid
+            Grid.Row="6"
+            BackgroundColor="{StaticResource HeaderBg}"
+            ColumnDefinitions="40,50,*,140,140,60"
+            Padding="16,8">
+            <Label Grid.Column="0" Text="ID" Style="{StaticResource TableHeaderLabelStyle}" />
+            <Label Grid.Column="1" Text="ADM" Style="{StaticResource TableHeaderLabelStyle}" />
+            <Label Grid.Column="2" Text="REASON" Style="{StaticResource TableHeaderLabelStyle}" />
+            <Label Grid.Column="3" Text="START" Style="{StaticResource TableHeaderLabelStyle}" />
+            <Label Grid.Column="4" Text="END" Style="{StaticResource TableHeaderLabelStyle}" />
+            <Label Grid.Column="5" Text="LIVE" Style="{StaticResource TableHeaderLabelStyle}" />
+        </Grid>
+
+        <!-- History list -->
+        <CollectionView
+            Grid.Row="7"
+            ItemsSource="{Binding BlockLogs}"
+            SelectionMode="None">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:BlockLogItem">
+                    <VerticalStackLayout Spacing="0">
+                        <Grid
+                            ColumnDefinitions="40,50,*,140,140,60"
+                            Padding="16,10"
+                            BackgroundColor="{StaticResource SurfaceColor}">
+                            <Label Grid.Column="0" Text="{Binding Id}" Style="{StaticResource TableCellMutedStyle}" />
+                            <Label Grid.Column="1" Text="{Binding AdminId}" Style="{StaticResource TableCellMutedStyle}" />
+                            <Label Grid.Column="2" Text="{Binding Reason}" Style="{StaticResource TableCellStyle}" LineBreakMode="TailTruncation" />
+                            <Label Grid.Column="3" Text="{Binding StartTime, StringFormat='{0:yyyy-MM-dd HH:mm}'}" Style="{StaticResource TableCellMutedStyle}" />
+                            <Label Grid.Column="4" Text="{Binding EndTime, StringFormat='{0:yyyy-MM-dd HH:mm}'}" Style="{StaticResource TableCellMutedStyle}" />
+                            <Label Grid.Column="5" Text="{Binding IsActive}" Style="{StaticResource TableCellStyle}" />
+                        </Grid>
+                        <BoxView HeightRequest="1" BackgroundColor="{StaticResource BorderColor}" />
+                    </VerticalStackLayout>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+            <CollectionView.EmptyView>
+                <Label Text="Enter a vehicle ID above to view block history." FontFamily="Courier New" FontSize="13" TextColor="{StaticResource TextMuted}" Padding="16,12" />
+            </CollectionView.EmptyView>
+        </CollectionView>
+
+    </Grid>
+</ContentPage>
